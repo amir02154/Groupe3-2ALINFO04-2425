@@ -6,14 +6,13 @@ import tn.esprit.spring.DAO.Entities.Bloc;
 import tn.esprit.spring.Services.Bloc.IBlocService;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+
 @RestController
 @RequestMapping("bloc")
 @AllArgsConstructor
 public class BlocRestController {
-    IBlocService service;
+
+    private final IBlocService service;
 
     @PostMapping("addOrUpdate")
     public Bloc addOrUpdate(@RequestBody Bloc b) {
@@ -65,4 +64,3 @@ public class BlocRestController {
         return service.ajouterBlocEtAffecterAFoyer(b, nomF);
     }
 }
-

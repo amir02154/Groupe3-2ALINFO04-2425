@@ -7,15 +7,13 @@ import tn.esprit.spring.DAO.Entities.TypeChambre;
 import tn.esprit.spring.Services.Chambre.IChambreService;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+
 @RestController
 @RequestMapping("chambre")
 @AllArgsConstructor
 public class ChambreRestController {
 
-    IChambreService service;
+    private final IChambreService service;
 
     @PostMapping("addOrUpdate")
     public Chambre addOrUpdate(@RequestBody Chambre c) {
@@ -57,4 +55,3 @@ public class ChambreRestController {
         return service.getChambresNonReserveParNomFoyerEtTypeChambre(nomFoyer, type);
     }
 }
-
