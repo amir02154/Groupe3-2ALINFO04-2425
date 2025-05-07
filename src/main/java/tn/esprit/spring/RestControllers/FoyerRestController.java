@@ -2,10 +2,8 @@ package tn.esprit.spring.RestControllers;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import tn.esprit.spring.DAO.Entities.Etudiant;
 import tn.esprit.spring.DAO.Entities.Foyer;
 import tn.esprit.spring.DAO.Entities.Universite;
-import tn.esprit.spring.Services.Etudiant.IEtudiantService;
 import tn.esprit.spring.Services.Foyer.IFoyerService;
 
 import java.util.List;
@@ -17,47 +15,47 @@ public class FoyerRestController {
     IFoyerService service;
 
     @PostMapping("addOrUpdate")
-    Foyer addOrUpdate(@RequestBody Foyer f) {
+    public Foyer addOrUpdate(@RequestBody Foyer f) {
         return service.addOrUpdate(f);
     }
 
     @GetMapping("findAll")
-    List<Foyer> findAll() {
+    public List<Foyer> findAll() {
         return service.findAll();
     }
 
     @GetMapping("findById")
-    Foyer findById(@RequestParam long id) {
+    public Foyer findById(@RequestParam long id) {
         return service.findById(id);
     }
 
     @DeleteMapping("delete")
-    void delete(@RequestBody Foyer f) {
+    public void delete(@RequestBody Foyer f) {
         service.delete(f);
     }
 
     @DeleteMapping("deleteById")
-    void deleteById(@RequestParam long id) {
+    public void deleteById(@RequestParam long id) {
         service.deleteById(id);
     }
 
     @PutMapping("affecterFoyerAUniversite")
-    Universite affecterFoyerAUniversite(@RequestParam long idFoyer, @RequestParam String nomUniversite) {
+    public Universite affecterFoyerAUniversite(@RequestParam long idFoyer, @RequestParam String nomUniversite) {
         return service.affecterFoyerAUniversite(idFoyer, nomUniversite);
     }
 
     @PutMapping("desaffecterFoyerAUniversite")
-    Universite desaffecterFoyerAUniversite(@RequestParam long idUniversite){
+    public Universite desaffecterFoyerAUniversite(@RequestParam long idUniversite){
         return service.desaffecterFoyerAUniversite(idUniversite);
     }
 
     @PostMapping("ajouterFoyerEtAffecterAUniversite")
-    Foyer ajouterFoyerEtAffecterAUniversite(@RequestBody Foyer foyer,@RequestParam long idUniversite) {
+    public Foyer ajouterFoyerEtAffecterAUniversite(@RequestBody Foyer foyer,@RequestParam long idUniversite) {
         return service.ajouterFoyerEtAffecterAUniversite(foyer,idUniversite);
     }
 
     @PutMapping("affecterFoyerAUniversite/{idF}/{idU}")
-    Universite affecterFoyerAUniversite(@PathVariable long idF,@PathVariable long idU){
+    public Universite affecterFoyerAUniversite(@PathVariable long idF,@PathVariable long idU){
         return service.affecterFoyerAUniversite(idF,idU);
     }
 }
