@@ -17,24 +17,23 @@ public class ReservationRestController {
     IReservationService service;
 
     @PostMapping("addOrUpdate")
-    Reservation addOrUpdate(@RequestBody Reservation r) {
+    public Reservation addOrUpdate(@RequestBody Reservation r) {
         return service.addOrUpdate(r);
     }
 
     @GetMapping("findAll")
-    List<Reservation> findAll() {
+   public List<Reservation> findAll() {
         return service.findAll();
     }
 
-    // ......... ?id=1
+    
     @GetMapping("findById")
-    Reservation findById(@RequestParam String id) {
+    public Reservation findById(@RequestParam String id) {
         return service.findById(id);
     }
 
-    // ......../1
     @DeleteMapping("deleteById/{id}")
-    void deleteById(@PathVariable String id) {
+    public void deleteById(@PathVariable String id) {
         service.deleteById(id);
     }
 
@@ -42,24 +41,24 @@ public class ReservationRestController {
 
 
     @DeleteMapping("delete")
-    void delete(@RequestBody Reservation r) {
+   public void delete(@RequestBody Reservation r) {
         service.delete(r);
     }
 
 
 
     @PostMapping("ajouterReservationEtAssignerAChambreEtAEtudiant")
-    Reservation ajouterReservationEtAssignerAChambreEtAEtudiant(@RequestParam Long numChambre, @RequestParam long cin) {
+    public Reservation ajouterReservationEtAssignerAChambreEtAEtudiant(@RequestParam Long numChambre, @RequestParam long cin) {
         return service.ajouterReservationEtAssignerAChambreEtAEtudiant(numChambre, cin);
     }
 
     @GetMapping("getReservationParAnneeUniversitaire")
-    long getReservationParAnneeUniversitaire(@RequestParam LocalDate debutAnnee, @RequestParam LocalDate finAnnee) {
+    public long getReservationParAnneeUniversitaire(@RequestParam LocalDate debutAnnee, @RequestParam LocalDate finAnnee) {
         return service.getReservationParAnneeUniversitaire(debutAnnee, finAnnee);
     }
 
     @DeleteMapping("annulerReservation")
-    String annulerReservation(@RequestParam long cinEtudiant) {
+    public String annulerReservation(@RequestParam long cinEtudiant) {
         return service.annulerReservation(cinEtudiant);
     }
 }
