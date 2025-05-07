@@ -1,7 +1,14 @@
+package tn.esprit.spring.RestControllers;
+
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import tn.esprit.spring.DAO.Entities.Bloc;
+import tn.esprit.spring.Services.Bloc.IBlocService;
+
+import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-
 @RestController
 @RequestMapping("bloc")
 @AllArgsConstructor
@@ -58,4 +65,4 @@ public class BlocRestController {
         return service.ajouterBlocEtAffecterAFoyer(b, nomF);
     }
 }
-      
+

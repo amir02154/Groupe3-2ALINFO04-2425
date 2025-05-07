@@ -1,7 +1,15 @@
+package tn.esprit.spring.RestControllers;
+
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import tn.esprit.spring.DAO.Entities.Chambre;
+import tn.esprit.spring.DAO.Entities.TypeChambre;
+import tn.esprit.spring.Services.Chambre.IChambreService;
+
+import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-
 @RestController
 @RequestMapping("chambre")
 @AllArgsConstructor
@@ -49,3 +57,4 @@ public class ChambreRestController {
         return service.getChambresNonReserveParNomFoyerEtTypeChambre(nomFoyer, type);
     }
 }
+
