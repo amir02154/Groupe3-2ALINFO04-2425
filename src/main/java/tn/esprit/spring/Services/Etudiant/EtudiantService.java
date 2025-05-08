@@ -27,7 +27,8 @@ public class EtudiantService implements IEtudiantService {
 
     @Override
     public Etudiant findById(long id) {
-        return repo.findById(id).get();
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Étudiant non trouvé avec l'id: " + id));
     }
 
     @Override
@@ -46,24 +47,25 @@ public class EtudiantService implements IEtudiantService {
     }
 
     @Override
-    public void affecterReservationAEtudiant
-            (String idR, String nomE, String prenomE) {
+    public void affecterReservationAEtudiant(String idR, String nomE, String prenomE) {
         // ManyToMany: Reservation(Child) -- Etudiant(Parent)
         // 1- Récupérer les objets
-        Reservation res= reservationRepository.findById(idR).get();
-        Etudiant et= repo.getByNomEtAndPrenomEt(nomE,prenomE);
+        Reservation res = reservationRepository.findById(idR)
+                .orElseThrow(() -> new RuntimeException("Réservation non trouvée avec l'id: " + idR));
+        Etudiant et = repo.getByNomEtAndPrenomEt(nomE, prenomE);
         // 2- Affectation: On affecte le child au parent
         et.getReservations().add(res);
         // 3- Save du parent
         repo.save(et);
     }
+
     @Override
-    public void desaffecterReservationAEtudiant
-            (String idR, String nomE, String prenomE) {
+    public void desaffecterReservationAEtudiant(String idR, String nomE, String prenomE) {
         // ManyToMany: Reservation(Child) -- Etudiant(Parent)
         // 1- Récupérer les objets
-        Reservation res= reservationRepository.findById(idR).get();
-        Etudiant et= repo.getByNomEtAndPrenomEt(nomE,prenomE);
+        Reservation res = reservationRepository.findById(idR)
+                .orElseThrow(() -> new RuntimeException("Réservation non trouvée avec l'id: " + idR));
+        Etudiant et = repo.getByNomEtAndPrenomEt(nomE, prenomE);
         // 2- Affectation: On desaffecte le child au parent
         et.getReservations().remove(res);
         // 3- Save du parent
