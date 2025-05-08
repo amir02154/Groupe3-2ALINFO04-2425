@@ -27,5 +27,6 @@ public class Foyer implements Serializable {
     Universite universite;
     @JsonIgnore
     @OneToMany(mappedBy = "foyer")
+    @Builder.Default
     private List<Bloc> blocs= new ArrayList<>();
 }
