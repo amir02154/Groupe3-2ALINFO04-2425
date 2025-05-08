@@ -12,7 +12,7 @@ import tn.esprit.spring.DAO.Repositories.ChambreRepository;
 import tn.esprit.spring.DAO.Repositories.EtudiantRepository;
 import tn.esprit.spring.DAO.Repositories.ReservationRepository;
 import tn.esprit.spring.Services.Reservation.ReservationService;
-
+import tn.esprit.spring.DAO.Entities.TypeChambre;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
