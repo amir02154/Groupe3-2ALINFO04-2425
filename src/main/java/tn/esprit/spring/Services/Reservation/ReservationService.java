@@ -12,15 +12,15 @@ import tn.esprit.spring.DAO.Repositories.ReservationRepository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class ReservationService implements IReservationService {
-    private final ReservationRepository repo;
-    private final ChambreRepository chambreRepository;
-    private final EtudiantRepository etudiantRepository;
+
+    ReservationRepository repo;
+    ChambreRepository chambreRepository;
+    EtudiantRepository etudiantRepository;
 
     @Override
     public Reservation addOrUpdate(Reservation r) {
@@ -34,13 +34,8 @@ public class ReservationService implements IReservationService {
 
     @Override
     public Reservation findById(String id) {
-        Optional<Reservation> reservation = repo.findById(id);
-        if (reservation.isPresent()) {
-            return reservation.get();
-        } else {
-            // Handle the case when reservation is not found
-            throw new RuntimeException("Reservation not found");
-        }
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
     }
 
     @Override
@@ -54,79 +49,59 @@ public class ReservationService implements IReservationService {
     }
 
     public LocalDate getDateDebutAU() {
-        LocalDate dateDebutAU;
         int year = LocalDate.now().getYear() % 100;
         if (LocalDate.now().getMonthValue() <= 7) {
-            dateDebutAU = LocalDate.of(Integer.parseInt("20" + (year - 1)), 9, 15);
+            return LocalDate.of(Integer.parseInt("20" + (year - 1)), 9, 15);
         } else {
-            dateDebutAU = LocalDate.of(Integer.parseInt("20" + year), 9, 15);
+            return LocalDate.of(Integer.parseInt("20" + year), 9, 15);
         }
-        return dateDebutAU;
     }
 
     public LocalDate getDateFinAU() {
-        LocalDate dateFinAU;
         int year = LocalDate.now().getYear() % 100;
         if (LocalDate.now().getMonthValue() <= 7) {
-            dateFinAU = LocalDate.of(Integer.parseInt("20" + year), 6, 30);
+            return LocalDate.of(Integer.parseInt("20" + year), 6, 30);
         } else {
-            dateFinAU = LocalDate.of(Integer.parseInt("20" + (year + 1)), 6, 30);
+            return LocalDate.of(Integer.parseInt("20" + (year + 1)), 6, 30);
         }
-        return dateFinAU;
     }
 
     @Override
     public Reservation ajouterReservationEtAssignerAChambreEtAEtudiant(Long numChambre, long cin) {
-        // Récupération de la chambre et de l'étudiant
-        Optional<Chambre> chambreOpt = chambreRepository.findByNumeroChambre(numChambre);
-        Optional<Etudiant> etudiantOpt = etudiantRepository.findByCin(cin);
+        Chambre chambre = chambreRepository.findByNumeroChambre(numChambre);
+        Etudiant etudiant = etudiantRepository.findByCin(cin);
 
-        if (chambreOpt.isPresent() && etudiantOpt.isPresent()) {
-            Chambre chambre = chambreOpt.get();
-            Etudiant etudiant = etudiantOpt.get();
+        int nombreReservations = chambreRepository
+                .countReservationsByIdChambreAndReservationsAnneeUniversitaireBetween(
+                        chambre.getIdChambre(), getDateDebutAU(), getDateFinAU());
 
-            // Compter le nombre de réservations existantes
-            int nombreReservations = chambreRepository
-                    .countReservationsByIdChambreAndReservationsAnneeUniversitaireBetween(
-                            chambre.getIdChambre(), getDateDebutAU(), getDateFinAU());
+        int capaciteMaximale = switch (chambre.getTypeC()) {
+            case SIMPLE -> 1;
+            case DOUBLE -> 2;
+            case TRIPLE -> 3;
+        };
 
-            // Vérification de la capacité de la chambre
-            boolean ajout = false;
-            int capaciteMaximale = switch (chambre.getTypeC()) {
-                case SIMPLE -> 1;
-                case DOUBLE -> 2;
-                case TRIPLE -> 3;
-            };
-            if (nombreReservations < capaciteMaximale) {
-                ajout = true;
-            } else {
-                log.info("Chambre " + chambre.getTypeC() + " remplie !");
-            }
-
-            if (ajout) {
-                // Création de la réservation
-                String idReservation = "" + getDateDebutAU().getYear() + "/" + getDateFinAU().getYear() + "-"
-                        + chambre.getBloc().getNomBloc() + "-" + chambre.getNumeroChambre() + "-" + etudiant.getCin();
-                Reservation reservation = Reservation.builder()
-                        .estValide(true)
-                        .anneeUniversitaire(LocalDate.now())
-                        .idReservation(idReservation)
-                        .build();
-
-                // Affectation de l'étudiant à la réservation
-                reservation.getEtudiants().add(etudiant);
-
-                // Sauvegarde de la réservation
-                reservation = repo.save(reservation);
-
-                // Affectation de la réservation à la chambre
-                chambre.getReservations().add(reservation);
-                chambreRepository.save(chambre);
-
-                return reservation;
-            }
+        if (nombreReservations >= capaciteMaximale) {
+            log.info("Chambre " + chambre.getTypeC() + " remplie !");
+            return null;
         }
-        return null; // Retourner null si la chambre est pleine ou les entités non trouvées
+
+        String idReservation = getDateDebutAU().getYear() + "/" + getDateFinAU().getYear() + "-" +
+                chambre.getBloc().getNomBloc() + "-" + chambre.getNumeroChambre() + "-" + etudiant.getCin();
+
+        Reservation reservation = Reservation.builder()
+                .estValide(true)
+                .anneeUniversitaire(LocalDate.now())
+                .idReservation(idReservation)
+                .build();
+
+        reservation.getEtudiants().add(etudiant);
+        reservation = repo.save(reservation);
+
+        chambre.getReservations().add(reservation);
+        chambreRepository.save(chambre);
+
+        return reservation;
     }
 
     @Override
@@ -136,58 +111,36 @@ public class ReservationService implements IReservationService {
 
     @Override
     public String annulerReservation(long cinEtudiant) {
-        Optional<Reservation> reservationOpt = repo.findByEtudiantsCinAndEstValide(cinEtudiant, true);
+        Reservation r = repo.findByEtudiantsCinAndEstValide(cinEtudiant, true);
+        Chambre c = chambreRepository.findByReservationsIdReservation(r.getIdReservation());
 
-        if (reservationOpt.isPresent()) {
-            Reservation r = reservationOpt.get();
-            Optional<Chambre> chambreOpt = chambreRepository.findByReservationsIdReservation(r.getIdReservation());
+        c.getReservations().remove(r);
+        chambreRepository.save(c);
+        repo.delete(r);
 
-            if (chambreOpt.isPresent()) {
-                Chambre c = chambreOpt.get();
-                c.getReservations().remove(r);
-                chambreRepository.save(c);
-                repo.delete(r);
-
-                return "La réservation " + r.getIdReservation() + " est annulée avec succès";
-            }
-        }
-        return "Réservation non trouvée ou déjà annulée.";
+        return "La réservation " + r.getIdReservation() + " est annulée avec succès";
     }
 
     @Override
     public void affectReservationAChambre(String idRes, long idChambre) {
-        Optional<Reservation> rOpt = repo.findById(idRes);
-        Optional<Chambre> cOpt = chambreRepository.findById(idChambre);
+        Reservation r = repo.findById(idRes)
+                .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
+        Chambre c = chambreRepository.findById(idChambre)
+                .orElseThrow(() -> new RuntimeException("Chambre non trouvée"));
 
-        if (rOpt.isPresent() && cOpt.isPresent()) {
-            Reservation r = rOpt.get();
-            Chambre c = cOpt.get();
-
-            // Parent: Chambre, Child: Reservation
-            c.getReservations().add(r);
-            chambreRepository.save(c);
-        } else {
-            // Handle the case when either reservation or chambre is not found
-            throw new RuntimeException("Reservation or Chambre not found");
-        }
+        c.getReservations().add(r);
+        chambreRepository.save(c);
     }
 
     @Override
     public void deaffectReservationAChambre(String idRes, long idChambre) {
-        Optional<Reservation> rOpt = repo.findById(idRes);
-        Optional<Chambre> cOpt = chambreRepository.findById(idChambre);
+        Reservation r = repo.findById(idRes)
+                .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
+        Chambre c = chambreRepository.findById(idChambre)
+                .orElseThrow(() -> new RuntimeException("Chambre non trouvée"));
 
-        if (rOpt.isPresent() && cOpt.isPresent()) {
-            Reservation r = rOpt.get();
-            Chambre c = cOpt.get();
-
-            // Parent: Chambre, Child: Reservation
-            c.getReservations().remove(r);
-            chambreRepository.save(c);
-        } else {
-            // Handle the case when either reservation or chambre is not found
-            throw new RuntimeException("Reservation or Chambre not found");
-        }
+        c.getReservations().remove(r);
+        chambreRepository.save(c);
     }
 
     @Override
