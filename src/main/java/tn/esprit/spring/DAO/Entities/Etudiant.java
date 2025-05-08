@@ -29,6 +29,7 @@ public class Etudiant implements Serializable {
     LocalDate dateNaissance;
     @JsonIgnore
     @ManyToMany(mappedBy = "etudiants")
+    @Builder.Default
     private List<Reservation> reservations= new ArrayList<>();
 
 

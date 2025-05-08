@@ -25,6 +25,8 @@ public class Reservation implements Serializable {
     boolean estValide;
     @ManyToMany
     @JsonIgnore
+    @Builder.Default
+
     private List<Etudiant> etudiants = new ArrayList<>();
 
 }

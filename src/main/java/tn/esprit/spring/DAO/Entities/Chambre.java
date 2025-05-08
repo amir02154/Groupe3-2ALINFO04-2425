@@ -30,6 +30,7 @@ public class Chambre implements Serializable {
     Bloc bloc;
     @JsonIgnore
     @OneToMany
+    @Builder.Default
     private List<Reservation> reservations= new ArrayList<>();
 
 }
