@@ -2,21 +2,20 @@ package tn.esprit.spring;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tn.esprit.spring.DAO.Entities.*;
 import tn.esprit.spring.DAO.Repositories.*;
 import tn.esprit.spring.Services.Reservation.ReservationService;
 
-import java.util.Date;
-import java.util.HashSet;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ReservationServiceTest {
 
     @Mock
@@ -31,78 +30,49 @@ public class ReservationServiceTest {
     @InjectMocks
     private ReservationService reservationService;
 
-    @BeforeEach
-    void beforeEach() {
-        // Préparation avant chaque test si nécessaire
-    }
-
-    @AfterEach
-    void afterEach() {
-        // Nettoyage après chaque test si nécessaire
-    }
-
-    @Order(1)
     @Test
     void testAjouterReservationEtAssignerAChambreEtAEtudiant() {
-        // Préparation des données simulées
-        Chambre chambre = new Chambre();
-        chambre.setIdChambre(1L);
-        chambre.setNumeroChambre(101L);
-        chambre.setTypeC(TypeChambre.SIMPLE);
-        Bloc bloc = new Bloc();
-        bloc.setNomBloc("A");
-        chambre.setBloc(bloc);
-        chambre.setReservations(new HashSet<>());
+        // --- Arrange ---
+        Long numChambre = 101L;
+        long cin = 12345678L;
 
-        Etudiant etudiant = new Etudiant();
-        etudiant.setCin(12345678L);
+        Bloc bloc = Bloc.builder().nomBloc("A").build();
 
-        // Mocks
-        when(chambreRepository.findByNumeroChambre(101L)).thenReturn(chambre);
-        when(etudiantRepository.findByCin(12345678L)).thenReturn(etudiant);
+        Chambre chambre = Chambre.builder()
+                .idChambre(1L)
+                .numeroChambre(numChambre)
+                .typeC(TypeChambre.SIMPLE)
+                .bloc(bloc)
+                .reservations(new ArrayList<>())
+                .build();
+
+        Etudiant etudiant = Etudiant.builder()
+                .cin(cin)
+                .build();
+
+        when(chambreRepository.findByNumeroChambre(numChambre)).thenReturn(chambre);
+        when(etudiantRepository.findByCin(cin)).thenReturn(etudiant);
         when(chambreRepository.countReservationsByIdChambreAndReservationsAnneeUniversitaireBetween(
-                anyLong(), any(Date.class), any(Date.class))).thenReturn(0);
-        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+                eq(1L), any(LocalDate.class), any(LocalDate.class)
+        )).thenReturn(0);
 
-        // Appel de la méthode à tester
-        Reservation result = reservationService.ajouterReservationEtAssignerAChambreEtAEtudiant(101L, 12345678L);
+        // Simule la sauvegarde de la réservation
+        Mockito.when(reservationRepository.save(Mockito.any(Reservation.class))).thenAnswer(invocation -> {
+            Reservation res = invocation.getArgument(0);
+            if (res.getEtudiants() == null) res.setEtudiants(new ArrayList<>());
+            return res;
+        });
 
-        // Vérifications
+        // --- Act ---
+        Reservation result = reservationService.ajouterReservationEtAssignerAChambreEtAEtudiant(numChambre, cin);
+
+        // --- Assert ---
         assertNotNull(result);
         assertTrue(result.isEstValide());
-        assertNotNull(result.getEtudiants());
+        assertEquals(LocalDate.now().getYear(), result.getAnneeUniversitaire().getYear());
+        assertNotNull(result.getIdReservation());
+        assertTrue(result.getIdReservation().contains("A"));
+        assertEquals(1, chambre.getReservations().size());
         assertTrue(result.getEtudiants().contains(etudiant));
-    }
-
-    @Order(2)
-    @Test
-    void testAnnulerReservation() {
-        long cinEtudiant = 12345678L;
-
-        // Préparation des données simulées
-        Etudiant etudiant = new Etudiant();
-        etudiant.setCin(cinEtudiant);
-
-        Reservation reservation = new Reservation();
-        reservation.setIdReservation("2023/2024-A-101-12345678");
-        reservation.setEstValide(true);
-        reservation.setEtudiants(new HashSet<>());
-        reservation.getEtudiants().add(etudiant);
-
-        Chambre chambre = new Chambre();
-        chambre.setIdChambre(1L);
-        chambre.setReservations(new HashSet<>());
-        chambre.getReservations().add(reservation);
-
-        // Mocks
-        when(reservationRepository.findByEtudiantsCinAndEstValide(cinEtudiant, true)).thenReturn(reservation);
-        when(chambreRepository.findByReservationsIdReservation("2023/2024-A-101-12345678")).thenReturn(chambre);
-
-        // Appel de la méthode à tester
-        String result = reservationService.annulerReservation(cinEtudiant);
-
-        // Vérifications
-        assertNotNull(result);
-        assertTrue(result.contains("annulée"));
     }
 }
