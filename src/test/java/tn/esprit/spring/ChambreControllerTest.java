@@ -20,9 +20,9 @@ class ChambreControllerTest {
     ChambreService chambreService;
 
     @Test
-    void testGetAllChambres() throws Exception {
-        mockMvc.perform(get("/chambre/all"))
-                .andExpect(status().isOk());
+    public void testGetAllChambres() throws Exception {
+        mockMvc.perform(get("/chambre/findAll"))
+                .andExpect(status().isOk()); // vérifie que le statut HTTP est 200
     }
 }
 

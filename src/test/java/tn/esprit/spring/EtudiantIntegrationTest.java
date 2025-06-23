@@ -6,8 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import tn.esprit.spring.DAO.Entities.Etudiant;
 import tn.esprit.spring.Services.Etudiant.EtudiantService;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*; // Utilisation des assertions JUnit 5
+
 @SpringBootTest
 class EtudiantServiceTest {
 
@@ -23,7 +23,8 @@ class EtudiantServiceTest {
 
         Etudiant saved = etudiantService.addOrUpdate(et);
 
-        assertNotNull(saved.getIdEtudiant());
-        assertEquals("Soumaya", saved.getNomEt());
+        assertNotNull(saved.getIdEtudiant(), "L'ID de l'étudiant ne doit pas être null après sauvegarde");
+        assertEquals("Soumaya", saved.getNomEt(), "Le nom de l'étudiant doit être 'Soumaya'");
+        assertEquals("Arbi", saved.getPrenomEt(), "Le prénom de l'étudiant doit être 'Arbi'");
     }
 }
