@@ -3,12 +3,14 @@ package tn.esprit.spring;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.spring.DAO.Entities.Etudiant;
 import tn.esprit.spring.Services.Etudiant.EtudiantService;
 
-import static org.junit.jupiter.api.Assertions.*; // Utilisation des assertions JUnit 5
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(classes = tn.esprit.spring.FoyerApplication.class) // Précise ta classe principale
+@Transactional  // Pour rollback automatique après chaque test
 class EtudiantServiceTest {
 
     @Autowired
