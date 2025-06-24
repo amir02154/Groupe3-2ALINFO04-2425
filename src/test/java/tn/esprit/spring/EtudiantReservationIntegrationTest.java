@@ -13,9 +13,9 @@ import tn.esprit.spring.DAO.Repositories.ReservationRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,25 +35,25 @@ public class EtudiantReservationIntegrationTest {
 
     @Test
     void testAffecterEtDesaffecterReservation() {
-        // Créer un étudiant avec une liste vide valide
+        // Créer un étudiant
         Etudiant etu = Etudiant.builder()
                 .nomEt("Slim")
                 .prenomEt("Ali")
                 .cin(99887766L)
                 .ecole("ESPRIT")
-                .reservations(new ArrayList<>()) // ✅ Liste vide correcte
+                .reservations(new ArrayList<>())
                 .build();
         etu = etudiantRepository.save(etu);
 
-        // Créer une réservation
+        // Créer une réservation avec une date valide
         Reservation res = Reservation.builder()
                 .idReservation("res123")
-                .anneeUniversitaire(LocalDate.parse("2024-2025")) // ✅ Utiliser une chaîne de caractères
+                .anneeUniversitaire(LocalDate.of(2024, 9, 1))  // ✅ corrigé ici
                 .estValide(true)
                 .build();
         res = reservationRepository.save(res);
 
-        // Affecter réservation à l’étudiant
+        // Affecter
         Etudiant etBefore = etudiantRepository.getByNomEtAndPrenomEt("Slim", "Ali");
         assertThat(etBefore.getReservations()).isEmpty();
 
@@ -63,7 +63,7 @@ public class EtudiantReservationIntegrationTest {
         Etudiant etAfterAffect = etudiantRepository.getByNomEtAndPrenomEt("Slim", "Ali");
         assertThat(etAfterAffect.getReservations()).hasSize(1);
 
-        // Désaffecter réservation
+        // Désaffecter
         etAfterAffect.getReservations().remove(res);
         etudiantRepository.save(etAfterAffect);
 

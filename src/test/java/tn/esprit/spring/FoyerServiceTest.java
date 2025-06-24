@@ -20,9 +20,6 @@ import static org.mockito.Mockito.*;
 public class FoyerServiceTest {
 
     @Mock
-    private FoyerRepository repo;
-
-    @Mock
     private FoyerRepository foyerRepository;
 
     @Mock
@@ -42,7 +39,7 @@ public class FoyerServiceTest {
     @Test
     void testAddOrUpdate() {
         Foyer foyer = new Foyer();
-        when(repo.save(foyer)).thenReturn(foyer);
+        when(foyerRepository.save(foyer)).thenReturn(foyer);
 
         Foyer result = foyerService.addOrUpdate(foyer);
         assertEquals(foyer, result);
@@ -51,7 +48,7 @@ public class FoyerServiceTest {
     @Test
     void testFindById() {
         Foyer foyer = new Foyer();
-        when(repo.findById(1L)).thenReturn(Optional.of(foyer));
+        when(foyerRepository.findById(1L)).thenReturn(Optional.of(foyer));
 
         Foyer result = foyerService.findById(1L);
         assertEquals(foyer, result);
@@ -62,7 +59,7 @@ public class FoyerServiceTest {
         Foyer f = new Foyer();
         Universite u = new Universite();
 
-        when(repo.findById(1L)).thenReturn(Optional.of(f));
+        when(foyerRepository.findById(1L)).thenReturn(Optional.of(f));
         when(universiteRepository.findByNomUniversite("ENIT")).thenReturn(u);
         when(universiteRepository.save(any())).thenReturn(u);
 
