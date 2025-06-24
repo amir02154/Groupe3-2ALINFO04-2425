@@ -1,7 +1,5 @@
 package tn.esprit.spring;
 
-
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -21,7 +19,7 @@ public class UniversiteServiceTest {
     private UniversiteRepository universiteRepository;
 
     @InjectMocks
-    private UniversiteService universiteService; // Assure-toi que cette classe existe et correspond à ton implémentation
+    private UniversiteService universiteService;
 
     @BeforeEach
     void setup() {
@@ -58,8 +56,10 @@ public class UniversiteServiceTest {
     void testFindByIdNotFound() {
         when(universiteRepository.findById(2L)).thenReturn(Optional.empty());
 
-        Universite result = universiteService.findById(2L);
-        assertNull(result); // ou lance exception selon ta méthode
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            universiteService.findById(2L);
+        });
+        assertEquals("Universite not found with id 2", exception.getMessage());
     }
 
     @Test
@@ -103,4 +103,3 @@ public class UniversiteServiceTest {
         verify(universiteRepository, times(1)).save(u);
     }
 }
-
