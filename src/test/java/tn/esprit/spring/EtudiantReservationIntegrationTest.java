@@ -1,5 +1,6 @@
 package tn.esprit.spring;
 
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,8 @@ public class EtudiantReservationIntegrationTest {
     }
 
     @Test
+    @Transactional
+
     void testAffecterEtDesaffecterReservation() {
         // Créer un étudiant
         Etudiant etu = Etudiant.builder()
