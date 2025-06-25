@@ -25,12 +25,12 @@ public class Chambre implements Serializable {
     long numeroChambre;
     @Enumerated(EnumType.STRING)
     TypeChambre typeC;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     Bloc bloc;
-    @JsonIgnore
-    @OneToMany
+    @OneToMany(mappedBy = "chambre", cascade = CascadeType.ALL)
     @Builder.Default
-    private List<Reservation> reservations= new ArrayList<>();
+    private List<Reservation> reservations = new ArrayList<>();
+
 
 }

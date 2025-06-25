@@ -1,5 +1,8 @@
 package tn.esprit.spring.Services.Reservation;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -66,11 +69,23 @@ public class ReservationService implements IReservationService {
             return LocalDate.of(Integer.parseInt("20" + (year + 1)), 6, 30);
         }
     }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public Reservation ajouterReservationEtAssignerAChambreEtAEtudiant(Long numChambre, long cin) {
         Chambre chambre = chambreRepository.findByNumeroChambre(numChambre);
-        Etudiant etudiant = etudiantRepository.findByCin(cin);
+        List<Etudiant> etudiants = entityManager.createQuery(
+                        "SELECT e FROM Etudiant e WHERE e.cin = :cin", Etudiant.class)
+                .setParameter("cin", cin)
+                .getResultList();
+
+        if (etudiants.isEmpty()) {
+            throw new RuntimeException("Aucun étudiant trouvé avec le CIN : " + cin);
+        }
+
+        Etudiant etudiant = etudiants.get(0); // ou traiter autrement si plusieurs
+
 
         int nombreReservations = chambreRepository
                 .countReservationsByIdChambreAndReservationsAnneeUniversitaireBetween(
@@ -113,14 +128,23 @@ public class ReservationService implements IReservationService {
     @Override
     public String annulerReservation(long cinEtudiant) {
         Reservation r = repo.findByEtudiantsCinAndEstValide(cinEtudiant, true);
+
+        if (r == null) {
+            throw new EntityNotFoundException("Aucune réservation valide trouvée pour l'étudiant avec le CIN : " + cinEtudiant);
+        }
+
         Chambre c = chambreRepository.findByReservationsIdReservation(r.getIdReservation());
 
-        c.getReservations().remove(r);
-        chambreRepository.save(c);
+        if (c != null) {
+            c.getReservations().remove(r);
+            chambreRepository.save(c);
+        }
+
         repo.delete(r);
 
         return "La réservation " + r.getIdReservation() + " est annulée avec succès";
     }
+
 
     @Override
     public void affectReservationAChambre(String idRes, long idChambre) {
