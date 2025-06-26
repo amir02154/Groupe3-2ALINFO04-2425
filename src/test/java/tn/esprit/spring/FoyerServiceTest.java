@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import tn.esprit.spring.DAO.Entities.Bloc;
 import tn.esprit.spring.DAO.Entities.Foyer;
 import tn.esprit.spring.DAO.Entities.Universite;
 import tn.esprit.spring.DAO.Repositories.BlocRepository;
@@ -12,6 +13,7 @@ import tn.esprit.spring.DAO.Repositories.FoyerRepository;
 import tn.esprit.spring.DAO.Repositories.UniversiteRepository;
 import tn.esprit.spring.Services.Foyer.FoyerService;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -78,4 +80,49 @@ public class FoyerServiceTest {
         Universite result = foyerService.desaffecterFoyerAUniversite(1L);
         assertNull(result.getFoyer());
     }
+    @Test
+    void testAjouterFoyerEtAffecterAUniversite() {
+        Foyer foyer = new Foyer();
+        foyer.setNomFoyer("F1");
+
+        Bloc bloc1 = new Bloc();
+        Bloc bloc2 = new Bloc();
+        foyer.setBlocs(List.of(bloc1, bloc2));
+
+        Universite universite = new Universite();
+
+        when(foyerRepository.save(foyer)).thenReturn(foyer);
+        when(universiteRepository.findById(1L)).thenReturn(Optional.of(universite));
+        when(universiteRepository.save(any())).thenReturn(universite);
+
+        Foyer result = foyerService.ajouterFoyerEtAffecterAUniversite(foyer, 1L);
+
+        assertEquals(foyer, result);
+        verify(blocRepository, times(2)).save(any(Bloc.class));
+    }
+    @Test
+    void testAjoutFoyerEtBlocs() {
+        Foyer foyer = new Foyer();
+        Bloc bloc = new Bloc();
+        foyer.setBlocs(List.of(bloc));
+
+        when(foyerRepository.save(foyer)).thenReturn(foyer);
+
+        Foyer result = foyerService.ajoutFoyerEtBlocs(foyer);
+
+        assertEquals(foyer, result);
+        verify(blocRepository, times(1)).save(any(Bloc.class));
+    }
+    @Test
+    void testFindAll() {
+        foyerService.findAll();
+        verify(foyerRepository).findAll();
+    }
+
+    @Test
+    void testDeleteById() {
+        foyerService.deleteById(1L);
+        verify(foyerRepository).deleteById(1L);
+    }
+
 }
