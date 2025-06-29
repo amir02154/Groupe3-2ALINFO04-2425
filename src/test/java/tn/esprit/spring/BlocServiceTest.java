@@ -1,7 +1,6 @@
 package tn.esprit.spring;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,7 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BlocServiceTest {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class BlocServiceTest {
 
     @Mock
     BlocRepository blocRepository;
@@ -47,17 +47,21 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(1)
     void testAddOrUpdate() {
         when(blocRepository.save(any(Bloc.class))).thenReturn(bloc);
+        when(chambreRepository.save(any(Chambre.class))).thenReturn(chambre);
 
         Bloc savedBloc = blocService.addOrUpdate(bloc);
 
         assertNotNull(savedBloc);
+        assertEquals("Bloc A", savedBloc.getNomBloc());
         verify(chambreRepository, times(1)).save(any(Chambre.class));
         verify(blocRepository, times(1)).save(any(Bloc.class));
     }
 
     @Test
+    @Order(2)
     void testFindAll() {
         when(blocRepository.findAll()).thenReturn(List.of(bloc));
         List<Bloc> blocs = blocService.findAll();
@@ -66,6 +70,7 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(3)
     void testFindById_found() {
         when(blocRepository.findById(1L)).thenReturn(Optional.of(bloc));
         Bloc result = blocService.findById(1L);
@@ -75,6 +80,7 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(4)
     void testFindById_notFound() {
         when(blocRepository.findById(2L)).thenReturn(Optional.empty());
 
@@ -83,6 +89,7 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(5)
     void testDeleteById_found() {
         when(blocRepository.findById(1L)).thenReturn(Optional.of(bloc));
         blocService.deleteById(1L);
@@ -92,6 +99,7 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(6)
     void testDeleteById_notFound() {
         when(blocRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -99,6 +107,7 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(7)
     void testDeleteBloc() {
         blocService.delete(bloc);
 
@@ -107,9 +116,11 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(8)
     void testAffecterChambresABloc() {
         when(blocRepository.findByNomBloc("Bloc A")).thenReturn(bloc);
         when(chambreRepository.findByNumeroChambre(101L)).thenReturn(chambre);
+        when(chambreRepository.save(any(Chambre.class))).thenReturn(chambre);
 
         Bloc result = blocService.affecterChambresABloc(List.of(101L), "Bloc A");
 
@@ -118,6 +129,7 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(9)
     void testAffecterBlocAFoyer() {
         Foyer foyer = Foyer.builder().nomFoyer("Foyer X").build();
         when(blocRepository.findByNomBloc("Bloc A")).thenReturn(bloc);
@@ -131,8 +143,11 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(10)
     void testAjouterBlocEtSesChambres() {
         Bloc blocWithChambres = Bloc.builder().chambres(List.of(chambre)).build();
+
+        when(chambreRepository.save(any(Chambre.class))).thenReturn(chambre);
 
         Bloc result = blocService.ajouterBlocEtSesChambres(blocWithChambres);
 
@@ -141,6 +156,7 @@ class BlocServiceTest {
     }
 
     @Test
+    @Order(11)
     void testAjouterBlocEtAffecterAFoyer() {
         Foyer foyer = Foyer.builder().nomFoyer("Foyer Y").build();
         when(foyerRepository.findByNomFoyer("Foyer Y")).thenReturn(foyer);
