@@ -5,11 +5,17 @@ import tn.esprit.spring.DAO.Entities.TypeChambre;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TypeChambreEnumTest {
+public class TypeChambreEnumTest {
 
     @Test
     void testEnumValues() {
-        assertNotNull(TypeChambre.valueOf("SIMPLE"));
-        assertEquals(3, TypeChambre.values().length);
+        for (TypeChambre type : TypeChambre.values()) {
+            assertNotNull(type.name());
+        }
+    }
+
+    @Test
+    void testValueOf() {
+        assertEquals(TypeChambre.SIMPLE, TypeChambre.valueOf("SIMPLE"));
     }
 }

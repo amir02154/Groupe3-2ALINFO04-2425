@@ -15,7 +15,7 @@ public class Schedular {
     IReservationService iReservationService;
 
     @Scheduled(cron = "0 * * * * *")
-    void service1() {
+    public void service1() {
         iChambreService.listeChambresParBloc();
     }
 
