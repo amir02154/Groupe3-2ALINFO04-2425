@@ -19,7 +19,8 @@ public class ReservationRepositoryTest {
     @Test
     void testSaveReservation() {
         Reservation r = new Reservation();
-        r.setAnneeUniversitaire(LocalDate.parse("2024/2025"));
+        r.setAnneeUniversitaire(LocalDate.of(2024, 9, 1));
+
         Reservation saved = reservationRepository.save(r);
         assertThat(saved.getIdReservation()).isNotNull();
     }
