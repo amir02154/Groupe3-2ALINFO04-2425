@@ -12,6 +12,7 @@ services:
       - db-data:/var/lib/mysql
     networks:
       - foyer-net
+    restart: unless-stopped
 
   app:
     image: amir015/groupe12alinfo-app:1.4.1
@@ -28,6 +29,7 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
     networks:
       - foyer-net
+    restart: unless-stopped
 
   prometheus:
     image: prom/prometheus
@@ -37,6 +39,7 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     networks:
       - foyer-net
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana
@@ -49,6 +52,7 @@ services:
       - grafana-data:/var/lib/grafana
     networks:
       - foyer-net
+    restart: unless-stopped
 
 volumes:
   db-data:
