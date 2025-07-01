@@ -31,6 +31,9 @@ services:
       - foyer-net
     restart: unless-stopped
 
-  
+volumes:
+  db-data:
 
-  
+networks:
+  foyer-net:
+    driver: bridge
