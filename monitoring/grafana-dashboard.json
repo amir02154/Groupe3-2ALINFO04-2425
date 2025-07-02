@@ -1,6 +1,8 @@
 {
   "dashboard": {
-    "title": "Application Monitoring Dashboard",
+    "id": null,
+    "uid": "custom-cpu-dashboard",
+    "title": "Dashboard CPU avec Alerte",
     "timezone": "browser",
     "schemaVersion": 30,
     "version": 1,
@@ -8,71 +10,78 @@
     "panels": [
       {
         "type": "timeseries",
-        "title": "⏱️ Temps de réponse HTTP (ms)",
-        "datasource": "Prometheus",
+        "title": "CPU Usage (%)",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "targets": [
           {
-            "expr": "http_server_requests_seconds_sum / http_server_requests_seconds_count",
-            "legendFormat": "{{method}} {{uri}}",
-            "interval": "",
-            "refId": "A"
-          }
-        ],
-        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
-      },
-      {
-        "type": "timeseries",
-        "title": "🚦 Taux d’erreur HTTP",
-        "datasource": "Prometheus",
-        "targets": [
-          {
-            "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m]))",
-            "legendFormat": "5xx errors",
-            "refId": "A"
-          }
-        ],
-        "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
-      },
-      {
-        "type": "timeseries",
-        "title": "💾 Utilisation de la mémoire (JVM)",
-        "datasource": "Prometheus",
-        "targets": [
-          {
-            "expr": "jvm_memory_used_bytes / jvm_memory_max_bytes * 100",
-            "legendFormat": "Mémoire utilisée (%)",
-            "refId": "A"
-          }
-        ],
-        "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
-      },
-      {
-        "type": "timeseries",
-        "title": "🔥 CPU (machine)",
-        "datasource": "Prometheus",
-        "targets": [
-          {
-            "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
+            "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
             "legendFormat": "{{instance}}",
             "refId": "A"
           }
         ],
-        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
-      },
-      {
-        "type": "timeseries",
-        "title": "📈 TPS - Transactions par seconde",
-        "datasource": "Prometheus",
-        "targets": [
-          {
-            "expr": "sum(rate(http_server_requests_seconds_count[1m]))",
-            "legendFormat": "TPS",
-            "refId": "A"
-          }
-        ],
-        "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 }
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 10,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "alert": {
+          "alertRuleTags": {},
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [80],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "reducer": {
+                "type": "avg"
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "1m",
+          "frequency": "60s",
+          "handler": 1,
+          "name": "CPU usage > 80%",
+          "noDataState": "no_data"
+        }
       }
-    ]
+    ],
+    "templating": {
+      "list": []
+    },
+    "annotations": {
+      "list": []
+    }
   },
   "overwrite": true
 }
