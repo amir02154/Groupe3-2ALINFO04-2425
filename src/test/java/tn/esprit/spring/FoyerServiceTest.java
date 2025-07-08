@@ -57,6 +57,12 @@ public class FoyerServiceTest {
     }
 
     @Test
+    void testFindById_NotFound() {
+        when(foyerRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> foyerService.findById(99L));
+    }
+
+    @Test
     void testAffecterFoyerAUniversite_nom() {
         Foyer f = new Foyer();
         Universite u = new Universite();

@@ -60,6 +60,12 @@ public class ChambreServiceTest {
     }
 
     @Test
+    void testFindById_NotFound() {
+        when(chambreRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> chambreService.findById(99L));
+    }
+
+    @Test
     void testDelete() {
         Chambre chambre = Chambre.builder()
                 .numeroChambre(103)
@@ -149,4 +155,41 @@ public class ChambreServiceTest {
         verify(chambreRepository, times(1)).deleteById(5L);
     }
 
+    @Test
+    void testGetChambresNonReserveParNomFoyerEtTypeChambre() {
+        Chambre c1 = new Chambre();
+        c1.setTypeC(TypeChambre.SIMPLE);
+        Bloc bloc = new Bloc();
+        bloc.setFoyer(new tn.esprit.spring.DAO.Entities.Foyer());
+        bloc.getFoyer().setNomFoyer("FoyerTest");
+        c1.setBloc(bloc);
+        c1.setReservations(List.of());
+
+        when(chambreRepository.findAll()).thenReturn(List.of(c1));
+
+        List<Chambre> chambres = chambreService.getChambresNonReserveParNomFoyerEtTypeChambre("FoyerTest", TypeChambre.SIMPLE);
+        assertEquals(1, chambres.size());
+    }
+
+    @Test
+    void testPourcentageChambreParTypeChambre() {
+        when(chambreRepository.count()).thenReturn(10L);
+        when(chambreRepository.countChambreByTypeC(TypeChambre.SIMPLE)).thenReturn(4L);
+        when(chambreRepository.countChambreByTypeC(TypeChambre.DOUBLE)).thenReturn(3L);
+        when(chambreRepository.countChambreByTypeC(TypeChambre.TRIPLE)).thenReturn(3L);
+        chambreService.pourcentageChambreParTypeChambre();
+        // Pas d'assertion car la méthode ne retourne rien, mais on vérifie qu'elle ne lève pas d'exception
+    }
+
+    @Test
+    void testNbPlacesDisponibleParChambreAnneeEnCours() {
+        Chambre c1 = new Chambre();
+        c1.setIdChambre(1L);
+        c1.setNumeroChambre(101);
+        c1.setTypeC(TypeChambre.SIMPLE);
+        when(chambreRepository.findAll()).thenReturn(List.of(c1));
+        when(chambreRepository.countReservationsByIdChambreAndReservationsEstValideAndReservationsAnneeUniversitaireBetween(anyLong(), anyBoolean(), any(), any())).thenReturn(0L);
+        chambreService.nbPlacesDisponibleParChambreAnneeEnCours();
+        // Pas d'assertion car la méthode ne retourne rien, mais on vérifie qu'elle ne lève pas d'exception
+    }
 }
