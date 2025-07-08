@@ -17,4 +17,12 @@ class BlocEntityTest {
         assertEquals("Bloc A", bloc.getNomBloc());
         assertEquals(100, bloc.getCapaciteBloc());
     }
+
+    @Test
+    void testBlocEntity() {
+        Bloc b1 = new Bloc();
+        Bloc b2 = new Bloc();
+        assertEquals(b1, b2);
+        assertEquals(b1.hashCode(), b2.hashCode());
+    }
 }

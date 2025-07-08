@@ -18,5 +18,13 @@ class ChambreEntityTest {
         assertEquals(101, c.getNumeroChambre());
         assertEquals(TypeChambre.SIMPLE, c.getTypeC());
     }
+
+    @Test
+    void testChambreEntity() {
+        Chambre c1 = new Chambre();
+        Chambre c2 = new Chambre();
+        assertEquals(c1, c2);
+        assertEquals(c1.hashCode(), c2.hashCode());
+    }
 }
 

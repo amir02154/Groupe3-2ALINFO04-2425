@@ -1,19 +1,20 @@
 package tn.esprit.spring;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import tn.esprit.spring.DAO.Repositories.ReservationRepository;
+import tn.esprit.spring.DAO.Repositories.ChambreRepository;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class ReservationRepositoryTest {
+class ChambreRepositoryTest {
     @Mock
-    ReservationRepository reservationRepository;
+    ChambreRepository chambreRepository;
 
     @Test
     void testRepositoryNotNull() {
         MockitoAnnotations.openMocks(this);
-        assertNotNull(reservationRepository);
+        assertNotNull(chambreRepository);
     }
-}
+} 
