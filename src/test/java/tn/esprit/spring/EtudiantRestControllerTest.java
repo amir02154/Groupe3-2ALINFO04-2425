@@ -39,7 +39,7 @@ public class EtudiantRestControllerTest {
     @Test
     void testGetAllEtudiants() throws Exception {
         Mockito.when(etudiantService.findAll()).thenReturn(Collections.emptyList());
-        mockMvc.perform(get("/etudiant/getAll"))
+        mockMvc.perform(get("/etudiant/findAll"))
                 .andExpect(status().isOk());
     }
 
@@ -47,7 +47,7 @@ public class EtudiantRestControllerTest {
     void testAddEtudiant() throws Exception {
         Etudiant etudiant = new Etudiant();
         Mockito.when(etudiantService.addOrUpdate(any(Etudiant.class))).thenReturn(etudiant);
-        mockMvc.perform(post("/etudiant/add")
+        mockMvc.perform(post("/etudiant/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(etudiant)))
                 .andExpect(status().isOk());
@@ -55,8 +55,10 @@ public class EtudiantRestControllerTest {
 
     @Test
     void testDeleteEtudiant() throws Exception {
+        Etudiant etudiant = new Etudiant();
         mockMvc.perform(delete("/etudiant/delete")
-                        .param("id", "1"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(etudiant)))
                 .andExpect(status().isOk());
     }
 
@@ -64,7 +66,7 @@ public class EtudiantRestControllerTest {
     void testGetEtudiantById() throws Exception {
         Etudiant etudiant = new Etudiant();
         Mockito.when(etudiantService.findById(anyLong())).thenReturn(etudiant);
-        mockMvc.perform(get("/etudiant/getById").param("id", "1"))
+        mockMvc.perform(get("/etudiant/findById").param("id", "1"))
                 .andExpect(status().isOk());
     }
 } 

@@ -39,7 +39,7 @@ public class ReservationRestControllerTest {
     @Test
     void testGetAllReservations() throws Exception {
         Mockito.when(reservationService.findAll()).thenReturn(Collections.emptyList());
-        mockMvc.perform(get("/reservation/getAll"))
+        mockMvc.perform(get("/reservation/findAll"))
                 .andExpect(status().isOk());
     }
 
@@ -47,7 +47,7 @@ public class ReservationRestControllerTest {
     void testAddReservation() throws Exception {
         Reservation reservation = new Reservation();
         Mockito.when(reservationService.addOrUpdate(any(Reservation.class))).thenReturn(reservation);
-        mockMvc.perform(post("/reservation/add")
+        mockMvc.perform(post("/reservation/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reservation)))
                 .andExpect(status().isOk());
@@ -55,8 +55,10 @@ public class ReservationRestControllerTest {
 
     @Test
     void testDeleteReservation() throws Exception {
+        Reservation reservation = new Reservation();
         mockMvc.perform(delete("/reservation/delete")
-                        .param("id", "1"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reservation)))
                 .andExpect(status().isOk());
     }
 
@@ -64,7 +66,7 @@ public class ReservationRestControllerTest {
     void testGetReservationById() throws Exception {
         Reservation reservation = new Reservation();
         Mockito.when(reservationService.findById(anyString())).thenReturn(reservation);
-        mockMvc.perform(get("/reservation/getById").param("id", "1"))
+        mockMvc.perform(get("/reservation/findById").param("id", "1"))
                 .andExpect(status().isOk());
     }
 } 
