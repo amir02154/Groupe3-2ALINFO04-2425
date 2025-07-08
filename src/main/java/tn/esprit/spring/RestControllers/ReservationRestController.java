@@ -9,6 +9,8 @@ import tn.esprit.spring.Services.Universite.IUniversiteService;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("reservation")
@@ -29,7 +31,11 @@ public class ReservationRestController {
     
     @GetMapping("findById")
     public Reservation findById(@RequestParam String id) {
-        return service.findById(id);
+        try {
+            return service.findById(id);
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
     }
 
     @DeleteMapping("deleteById/{id}")

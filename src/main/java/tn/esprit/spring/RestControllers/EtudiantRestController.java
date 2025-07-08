@@ -6,6 +6,8 @@ import tn.esprit.spring.DAO.Entities.Etudiant;
 import tn.esprit.spring.Services.Etudiant.IEtudiantService;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("etudiant")
@@ -25,7 +27,11 @@ public class EtudiantRestController {
 
     @GetMapping("findById")
     public Etudiant findById(@RequestParam long id) {
-        return service.findById(id);
+        try {
+            return service.findById(id);
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
     }
 
     @DeleteMapping("delete")
