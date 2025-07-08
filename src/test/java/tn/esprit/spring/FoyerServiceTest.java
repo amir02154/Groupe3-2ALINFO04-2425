@@ -131,4 +131,9 @@ public class FoyerServiceTest {
         verify(foyerRepository).deleteById(1L);
     }
 
+    @Test
+    void testDeleteById_NotFound() {
+        doThrow(new RuntimeException("Foyer not found")).when(foyerRepository).deleteById(99L);
+        assertThrows(RuntimeException.class, () -> foyerService.deleteById(99L));
+    }
 }

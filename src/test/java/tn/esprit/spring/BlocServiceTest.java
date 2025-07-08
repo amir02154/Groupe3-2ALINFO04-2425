@@ -167,4 +167,10 @@ public class BlocServiceTest {
         assertEquals(foyer, result.getFoyer());
         verify(blocRepository).save(any(Bloc.class));
     }
+
+    @Test
+    void testDeleteById_NotFound_Exception() {
+        when(blocRepository.findById(123L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> blocService.deleteById(123L));
+    }
 }

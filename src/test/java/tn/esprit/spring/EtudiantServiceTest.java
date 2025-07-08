@@ -117,4 +117,10 @@ public class EtudiantServiceTest {
         assertFalse(et.getReservations().contains(res));
         verify(etudiantRepository).save(et);
     }
+
+    @Test
+    void testDeleteById_NotFound() {
+        doThrow(new RuntimeException("Etudiant not found")).when(etudiantRepository).deleteById(99L);
+        assertThrows(RuntimeException.class, () -> etudiantService.deleteById(99L));
+    }
 }

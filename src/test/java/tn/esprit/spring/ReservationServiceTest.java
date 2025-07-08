@@ -90,4 +90,10 @@ public class ReservationServiceTest {
         assertEquals(1, chambre.getReservations().size());
         assertTrue(result.getEtudiants().contains(etudiant));
     }
+
+    @Test
+    void testDeleteById_NotFound() {
+        doThrow(new RuntimeException("Reservation not found")).when(reservationRepository).deleteById("notfound");
+        assertThrows(RuntimeException.class, () -> reservationService.deleteById("notfound"));
+    }
 }
