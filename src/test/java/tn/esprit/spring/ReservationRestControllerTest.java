@@ -69,4 +69,11 @@ public class ReservationRestControllerTest {
         mockMvc.perform(get("/reservation/findById").param("id", "1"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void testGetReservationById_NotFound() throws Exception {
+        Mockito.when(reservationService.findById(anyString())).thenThrow(new RuntimeException("Not found"));
+        mockMvc.perform(get("/reservation/findById").param("id", "999"))
+                .andExpect(status().isNotFound());
+    }
 } 

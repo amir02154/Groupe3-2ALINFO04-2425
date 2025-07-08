@@ -69,4 +69,11 @@ public class EtudiantRestControllerTest {
         mockMvc.perform(get("/etudiant/findById").param("id", "1"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void testGetEtudiantById_NotFound() throws Exception {
+        Mockito.when(etudiantService.findById(anyLong())).thenThrow(new RuntimeException("Not found"));
+        mockMvc.perform(get("/etudiant/findById").param("id", "999"))
+                .andExpect(status().isNotFound());
+    }
 } 

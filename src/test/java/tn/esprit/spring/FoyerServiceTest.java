@@ -87,6 +87,11 @@ public class FoyerServiceTest {
         assertNull(result.getFoyer());
     }
     @Test
+    void testDesaffecterFoyerAUniversite_NotFound() {
+        when(universiteRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> foyerService.desaffecterFoyerAUniversite(99L));
+    }
+    @Test
     void testAjouterFoyerEtAffecterAUniversite() {
         Foyer foyer = new Foyer();
         foyer.setNomFoyer("F1");

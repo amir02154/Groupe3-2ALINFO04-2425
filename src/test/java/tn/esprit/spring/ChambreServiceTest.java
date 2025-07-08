@@ -121,6 +121,13 @@ public class ChambreServiceTest {
         assertEquals(2, chambres.size());
     }
     @Test
+    void testGetChambresParNomBlocJava_BlocNotFound() {
+        when(blocRepository.findByNomBloc("BlocInexistant")).thenReturn(null);
+        List<Chambre> chambres = chambreService.getChambresParNomBlocJava("BlocInexistant");
+        assertNotNull(chambres);
+        assertTrue(chambres.isEmpty());
+    }
+    @Test
     void testGetChambresParNomBlocKeyWord() {
         Chambre c1 = new Chambre();
         Chambre c2 = new Chambre();
