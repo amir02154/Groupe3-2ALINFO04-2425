@@ -115,6 +115,35 @@ public class ChambreServiceTest {
         assertEquals(2, chambres.size());
     }
     @Test
+    void testGetChambresParNomBlocKeyWord() {
+        Chambre c1 = new Chambre();
+        Chambre c2 = new Chambre();
+        when(chambreRepository.findByBlocNomBloc("BlocB")).thenReturn(List.of(c1, c2));
+
+        List<Chambre> chambres = chambreService.getChambresParNomBlocKeyWord("BlocB");
+        assertEquals(2, chambres.size());
+    }
+
+    @Test
+    void testGetChambresParNomBlocJPQL() {
+        Chambre c1 = new Chambre();
+        Chambre c2 = new Chambre();
+        when(chambreRepository.getChambresParNomBlocJPQL("BlocC")).thenReturn(List.of(c1, c2));
+
+        List<Chambre> chambres = chambreService.getChambresParNomBlocJPQL("BlocC");
+        assertEquals(2, chambres.size());
+    }
+
+    @Test
+    void testGetChambresParNomBlocSQL() {
+        Chambre c1 = new Chambre();
+        Chambre c2 = new Chambre();
+        when(chambreRepository.getChambresParNomBlocSQL("BlocD")).thenReturn(List.of(c1, c2));
+
+        List<Chambre> chambres = chambreService.getChambresParNomBlocSQL("BlocD");
+        assertEquals(2, chambres.size());
+    }
+    @Test
     void testDeleteById() {
         chambreService.deleteById(5L);
         verify(chambreRepository, times(1)).deleteById(5L);
