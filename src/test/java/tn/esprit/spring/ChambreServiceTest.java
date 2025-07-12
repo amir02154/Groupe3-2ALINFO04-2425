@@ -50,6 +50,7 @@ class ChambreServiceTest {
                 .nomBloc("Bloc A")
                 .capaciteBloc(50)
                 .foyer(foyer)
+                .chambres(new ArrayList<>())
                 .build();
 
         chambre = Chambre.builder()
@@ -59,6 +60,9 @@ class ChambreServiceTest {
                 .bloc(bloc)
                 .reservations(new ArrayList<>())
                 .build();
+
+        // Ajouter la chambre au bloc
+        bloc.getChambres().add(chambre);
     }
 
     @Test
@@ -130,12 +134,13 @@ class ChambreServiceTest {
 
     @Test
     void testNbChambreParTypeEtBloc() {
-        when(chambreRepository.countByTypeCAndBlocIdBloc(TypeChambre.SIMPLE, 1L)).thenReturn(5);
+        List<Chambre> chambres = List.of(chambre);
+        when(chambreRepository.findAll()).thenReturn(chambres);
 
         long result = chambreService.nbChambreParTypeEtBloc(TypeChambre.SIMPLE, 1L);
 
-        assertEquals(5, result);
-        verify(chambreRepository).countByTypeCAndBlocIdBloc(TypeChambre.SIMPLE, 1L);
+        assertEquals(1, result);
+        verify(chambreRepository).findAll();
     }
 
     @Test

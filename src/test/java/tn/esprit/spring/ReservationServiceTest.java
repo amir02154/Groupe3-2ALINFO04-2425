@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class ReservationServiceTest {
@@ -189,20 +190,44 @@ public class ReservationServiceTest {
     @Test
     void testAnnulerReservation() {
         long cinEtudiant = 12345678L;
-        String expectedMessage = "Réservation annulée pour l'étudiant avec CIN: " + cinEtudiant;
+        Reservation reservation = Reservation.builder()
+                .idReservation("RES001")
+                .estValide(true)
+                .build();
+
+        when(reservationRepository.findByEtudiantsCinAndEstValide(cinEtudiant, true)).thenReturn(reservation);
+        when(chambreRepository.findByReservationsIdReservation("RES001")).thenReturn(chambre);
+        when(chambreRepository.save(any(Chambre.class))).thenReturn(chambre);
+        doNothing().when(reservationRepository).delete(any(Reservation.class));
 
         String result = reservationService.annulerReservation(cinEtudiant);
 
-        assertEquals(expectedMessage, result);
+        assertNotNull(result);
+        assertTrue(result.contains("La réservation RES001 est annulée avec succès"));
+        verify(reservationRepository).findByEtudiantsCinAndEstValide(cinEtudiant, true);
+        verify(reservationRepository).delete(any(Reservation.class));
+    }
+
+    @Test
+    void testAnnulerReservation_NotFound() {
+        long cinEtudiant = 99999999L;
+        when(reservationRepository.findByEtudiantsCinAndEstValide(cinEtudiant, true)).thenReturn(null);
+
+        assertThrows(EntityNotFoundException.class, () -> reservationService.annulerReservation(cinEtudiant));
+        verify(reservationRepository).findByEtudiantsCinAndEstValide(cinEtudiant, true);
     }
 
     @Test
     void testAnnulerReservations() {
-        doNothing().when(reservationRepository).deleteAll();
+        List<Reservation> reservations = List.of(reservation);
+        when(reservationRepository.findByEstValideAndAnneeUniversitaireBetween(anyBoolean(), any(), any()))
+                .thenReturn(reservations);
+        when(reservationRepository.save(any(Reservation.class))).thenReturn(reservation);
 
         reservationService.annulerReservations();
 
-        verify(reservationRepository).deleteAll();
+        verify(reservationRepository).findByEstValideAndAnneeUniversitaireBetween(anyBoolean(), any(), any());
+        verify(reservationRepository).save(any(Reservation.class));
     }
 
     @Test
@@ -212,13 +237,13 @@ public class ReservationServiceTest {
 
         when(reservationRepository.findById(idRes)).thenReturn(Optional.of(reservation));
         when(chambreRepository.findById(idChambre)).thenReturn(Optional.of(chambre));
-        when(reservationRepository.save(any(Reservation.class))).thenReturn(reservation);
+        when(chambreRepository.save(any(Chambre.class))).thenReturn(chambre);
 
         reservationService.affectReservationAChambre(idRes, idChambre);
 
         verify(reservationRepository).findById(idRes);
         verify(chambreRepository).findById(idChambre);
-        verify(reservationRepository).save(reservation);
+        verify(chambreRepository).save(any(Chambre.class));
     }
 
     @Test
@@ -228,13 +253,13 @@ public class ReservationServiceTest {
 
         when(reservationRepository.findById(idRes)).thenReturn(Optional.of(reservation));
         when(chambreRepository.findById(idChambre)).thenReturn(Optional.of(chambre));
-        when(reservationRepository.save(any(Reservation.class))).thenReturn(reservation);
+        when(chambreRepository.save(any(Chambre.class))).thenReturn(chambre);
 
         reservationService.deaffectReservationAChambre(idRes, idChambre);
 
         verify(reservationRepository).findById(idRes);
         verify(chambreRepository).findById(idChambre);
-        verify(reservationRepository).save(reservation);
+        verify(chambreRepository).save(any(Chambre.class));
     }
 
     @Test

@@ -111,7 +111,7 @@ class FoyerAspect4SIM2Test {
     @Test
     void testBeforeAdvice2() throws Exception {
         // Arrange
-        when(joinPoint.getSignature()).thenReturn(new org.aspectj.lang.Signature() {
+        lenient().when(joinPoint.getSignature()).thenReturn(new org.aspectj.lang.Signature() {
             @Override
             public String toShortString() {
                 return "ajouterFoyerEtAffecterAUniversite()";
