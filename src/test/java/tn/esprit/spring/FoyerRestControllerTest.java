@@ -19,6 +19,7 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -70,9 +71,21 @@ public class FoyerRestControllerTest {
     }
 
     @Test
+    void testDelete() throws Exception {
+        mockMvc.perform(delete("/foyer/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(foyer)))
+                .andExpect(status().isOk());
+
+        Mockito.verify(service).delete(any(Foyer.class));
+    }
+
+    @Test
     void testDeleteById() throws Exception {
         mockMvc.perform(delete("/foyer/deleteById?id=1"))
                 .andExpect(status().isOk());
+
+        Mockito.verify(service).deleteById(1L);
     }
 
     @Test
@@ -80,6 +93,15 @@ public class FoyerRestControllerTest {
         Mockito.when(service.affecterFoyerAUniversite(anyLong(), anyString())).thenReturn(universite);
 
         mockMvc.perform(put("/foyer/affecterFoyerAUniversite?idFoyer=1&nomUniversite=ESPRIT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nomUniversite").value("ESPRIT"));
+    }
+
+    @Test
+    void testDesaffecterFoyerAUniversite() throws Exception {
+        Mockito.when(service.desaffecterFoyerAUniversite(anyLong())).thenReturn(universite);
+
+        mockMvc.perform(put("/foyer/desaffecterFoyerAUniversite?idUniversite=1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomUniversite").value("ESPRIT"));
     }
@@ -93,5 +115,14 @@ public class FoyerRestControllerTest {
                         .content(new ObjectMapper().writeValueAsString(foyer)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomFoyer").value("Foyer Central"));
+    }
+
+    @Test
+    void testAffecterFoyerAUniversiteWithPathVariables() throws Exception {
+        Mockito.when(service.affecterFoyerAUniversite(eq(1L), eq(2L))).thenReturn(universite);
+
+        mockMvc.perform(put("/foyer/affecterFoyerAUniversite/1/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nomUniversite").value("ESPRIT"));
     }
 }

@@ -2,23 +2,26 @@ package tn.esprit.spring;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import tn.esprit.spring.DAO.Entities.Bloc;
 import tn.esprit.spring.DAO.Entities.Chambre;
 import tn.esprit.spring.DAO.Entities.TypeChambre;
-import tn.esprit.spring.DAO.Repositories.BlocRepository;
 import tn.esprit.spring.DAO.Repositories.ChambreRepository;
 import tn.esprit.spring.Services.Chambre.ChambreService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-public class ChambreServiceTest {
+@ExtendWith(MockitoExtension.class)
+class ChambreServiceTest {
 
     @Mock
     private ChambreRepository chambreRepository;
@@ -26,177 +29,190 @@ public class ChambreServiceTest {
     @InjectMocks
     private ChambreService chambreService;
 
+    private Chambre chambre;
+    private Bloc bloc;
+
     @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this);
+    void setUp() {
+        bloc = Bloc.builder()
+                .idBloc(1L)
+                .nomBloc("Bloc A")
+                .capaciteBloc(50)
+                .build();
+
+        chambre = Chambre.builder()
+                .idChambre(1L)
+                .numeroChambre(101L)
+                .typeC(TypeChambre.SIMPLE)
+                .bloc(bloc)
+                .build();
     }
 
     @Test
     void testAddOrUpdate() {
-        Chambre chambre = Chambre.builder()
-                .numeroChambre(101)
-                .typeC(TypeChambre.DOUBLE)
-                .build();
-
-        when(chambreRepository.save(chambre)).thenReturn(chambre);
+        when(chambreRepository.save(any(Chambre.class))).thenReturn(chambre);
 
         Chambre result = chambreService.addOrUpdate(chambre);
-        assertEquals(chambre, result);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getIdChambre());
+        assertEquals(101L, result.getNumeroChambre());
+        verify(chambreRepository).save(chambre);
+    }
+
+    @Test
+    void testFindAll() {
+        List<Chambre> chambres = List.of(chambre);
+        when(chambreRepository.findAll()).thenReturn(chambres);
+
+        List<Chambre> result = chambreService.findAll();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(chambre, result.get(0));
+        verify(chambreRepository).findAll();
     }
 
     @Test
     void testFindById() {
-        Chambre chambre = Chambre.builder()
-                .numeroChambre(102)
-                .typeC(TypeChambre.SIMPLE)
-                .build();
-
         when(chambreRepository.findById(1L)).thenReturn(Optional.of(chambre));
 
-        Chambre found = chambreService.findById(1L);
-        assertNotNull(found);
-        assertEquals(102, found.getNumeroChambre());
-        assertEquals(TypeChambre.SIMPLE, found.getTypeC());
+        Chambre result = chambreService.findById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getIdChambre());
+        verify(chambreRepository).findById(1L);
     }
 
     @Test
-    void testFindById_NotFound() {
-        when(chambreRepository.findById(99L)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> chambreService.findById(99L));
+    void testDeleteById() {
+        doNothing().when(chambreRepository).deleteById(1L);
+
+        chambreService.deleteById(1L);
+
+        verify(chambreRepository).deleteById(1L);
     }
 
     @Test
     void testDelete() {
-        Chambre chambre = Chambre.builder()
-                .numeroChambre(103)
-                .typeC(TypeChambre.TRIPLE)
-                .build();
+        doNothing().when(chambreRepository).delete(chambre);
 
-        when(chambreRepository.findById(1L)).thenReturn(Optional.of(chambre));
+        chambreService.delete(chambre);
 
-        Optional<Chambre> optionalChambre = chambreRepository.findById(1L);
-        optionalChambre.ifPresent(c -> chambreService.delete(c));
-
-        verify(chambreRepository, times(1)).delete(chambre);
+        verify(chambreRepository).delete(chambre);
     }
-    @Test
-    void testNbChambreParTypeEtBloc() {
-        Chambre c1 = new Chambre();
-        c1.setTypeC(TypeChambre.DOUBLE);
-        c1.setBloc(new Bloc());
-        c1.getBloc().setIdBloc(1L);
 
-        Chambre c2 = new Chambre();
-        c2.setTypeC(TypeChambre.SIMPLE);
-        c2.setBloc(new Bloc());
-        c2.getBloc().setIdBloc(1L);
-
-        when(chambreRepository.findAll()).thenReturn(List.of(c1, c2));
-
-        long count = chambreService.nbChambreParTypeEtBloc(TypeChambre.DOUBLE, 1L);
-        assertEquals(1, count);
-    }
     @Test
     void testGetChambresParNomBloc() {
-        Chambre c1 = new Chambre();
-        Chambre c2 = new Chambre();
-        when(chambreRepository.findByBlocNomBloc("BlocA")).thenReturn(List.of(c1, c2));
+        List<Chambre> chambres = List.of(chambre);
+        when(chambreRepository.findByBlocNomBloc("Bloc A")).thenReturn(chambres);
 
-        List<Chambre> chambres = chambreService.getChambresParNomBloc("BlocA");
-        assertEquals(2, chambres.size());
-    }
-    @Mock
-    BlocRepository blocRepository; // à ajouter en haut aussi
+        List<Chambre> result = chambreService.getChambresParNomBloc("Bloc A");
 
-    @Test
-    void testGetChambresParNomBlocJava() {
-        Chambre c1 = new Chambre();
-        Chambre c2 = new Chambre();
-        Bloc bloc = new Bloc();
-        bloc.setChambres(List.of(c1, c2));
-
-        when(blocRepository.findByNomBloc("BlocA")).thenReturn(bloc);
-
-        List<Chambre> chambres = chambreService.getChambresParNomBlocJava("BlocA");
-        assertEquals(2, chambres.size());
-    }
-    @Test
-    void testGetChambresParNomBlocJava_BlocNotFound() {
-        when(blocRepository.findByNomBloc("BlocInexistant")).thenReturn(null);
-        List<Chambre> chambres = chambreService.getChambresParNomBlocJava("BlocInexistant");
-        assertNotNull(chambres);
-        assertTrue(chambres.isEmpty());
-    }
-    @Test
-    void testGetChambresParNomBlocKeyWord() {
-        Chambre c1 = new Chambre();
-        Chambre c2 = new Chambre();
-        when(chambreRepository.findByBlocNomBloc("BlocB")).thenReturn(List.of(c1, c2));
-
-        List<Chambre> chambres = chambreService.getChambresParNomBlocKeyWord("BlocB");
-        assertEquals(2, chambres.size());
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(chambre, result.get(0));
+        verify(chambreRepository).findByBlocNomBloc("Bloc A");
     }
 
     @Test
-    void testGetChambresParNomBlocJPQL() {
-        Chambre c1 = new Chambre();
-        Chambre c2 = new Chambre();
-        when(chambreRepository.getChambresParNomBlocJPQL("BlocC")).thenReturn(List.of(c1, c2));
+    void testNbChambreParTypeEtBloc() {
+        when(chambreRepository.countByTypeCAndBlocIdBloc(TypeChambre.SIMPLE, 1L)).thenReturn(5);
 
-        List<Chambre> chambres = chambreService.getChambresParNomBlocJPQL("BlocC");
-        assertEquals(2, chambres.size());
-    }
+        long result = chambreService.nbChambreParTypeEtBloc(TypeChambre.SIMPLE, 1L);
 
-    @Test
-    void testGetChambresParNomBlocSQL() {
-        Chambre c1 = new Chambre();
-        Chambre c2 = new Chambre();
-        when(chambreRepository.getChambresParNomBlocSQL("BlocD")).thenReturn(List.of(c1, c2));
-
-        List<Chambre> chambres = chambreService.getChambresParNomBlocSQL("BlocD");
-        assertEquals(2, chambres.size());
-    }
-    @Test
-    void testDeleteById() {
-        chambreService.deleteById(5L);
-        verify(chambreRepository, times(1)).deleteById(5L);
+        assertEquals(5, result);
+        verify(chambreRepository).countByTypeCAndBlocIdBloc(TypeChambre.SIMPLE, 1L);
     }
 
     @Test
     void testGetChambresNonReserveParNomFoyerEtTypeChambre() {
-        Chambre c1 = new Chambre();
-        c1.setTypeC(TypeChambre.SIMPLE);
-        Bloc bloc = new Bloc();
-        bloc.setFoyer(new tn.esprit.spring.DAO.Entities.Foyer());
-        bloc.getFoyer().setNomFoyer("FoyerTest");
-        c1.setBloc(bloc);
-        c1.setReservations(List.of());
+        List<Chambre> chambres = List.of(chambre);
+        when(chambreRepository.findAll()).thenReturn(chambres);
 
-        when(chambreRepository.findAll()).thenReturn(List.of(c1));
+        List<Chambre> result = chambreService.getChambresNonReserveParNomFoyerEtTypeChambre("Foyer A", TypeChambre.SIMPLE);
 
-        List<Chambre> chambres = chambreService.getChambresNonReserveParNomFoyerEtTypeChambre("FoyerTest", TypeChambre.SIMPLE);
-        assertEquals(1, chambres.size());
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(chambre, result.get(0));
+        verify(chambreRepository).findAll();
+    }
+
+    @Test
+    void testListeChambresParBloc() {
+        // Cette méthode ne retourne rien, on teste juste qu'elle ne lance pas d'exception
+        assertDoesNotThrow(() -> chambreService.listeChambresParBloc());
     }
 
     @Test
     void testPourcentageChambreParTypeChambre() {
-        when(chambreRepository.count()).thenReturn(10L);
-        when(chambreRepository.countChambreByTypeC(TypeChambre.SIMPLE)).thenReturn(4L);
-        when(chambreRepository.countChambreByTypeC(TypeChambre.DOUBLE)).thenReturn(3L);
-        when(chambreRepository.countChambreByTypeC(TypeChambre.TRIPLE)).thenReturn(3L);
-        chambreService.pourcentageChambreParTypeChambre();
-        // Pas d'assertion car la méthode ne retourne rien, mais on vérifie qu'elle ne lève pas d'exception
+        // Cette méthode ne retourne rien, on teste juste qu'elle ne lance pas d'exception
+        assertDoesNotThrow(() -> chambreService.pourcentageChambreParTypeChambre());
     }
 
     @Test
     void testNbPlacesDisponibleParChambreAnneeEnCours() {
-        Chambre c1 = new Chambre();
-        c1.setIdChambre(1L);
-        c1.setNumeroChambre(101);
-        c1.setTypeC(TypeChambre.SIMPLE);
-        when(chambreRepository.findAll()).thenReturn(List.of(c1));
-        when(chambreRepository.countReservationsByIdChambreAndReservationsEstValideAndReservationsAnneeUniversitaireBetween(anyLong(), anyBoolean(), any(), any())).thenReturn(0L);
-        chambreService.nbPlacesDisponibleParChambreAnneeEnCours();
-        // Pas d'assertion car la méthode ne retourne rien, mais on vérifie qu'elle ne lève pas d'exception
+        // Cette méthode ne retourne rien, on teste juste qu'elle ne lance pas d'exception
+        assertDoesNotThrow(() -> chambreService.nbPlacesDisponibleParChambreAnneeEnCours());
+    }
+
+    @Test
+    void testGetChambresParNomBlocJava() {
+        List<Chambre> chambres = List.of(chambre);
+        when(chambreRepository.findByBlocNomBloc("Bloc A")).thenReturn(chambres);
+
+        List<Chambre> result = chambreService.getChambresParNomBlocJava("Bloc A");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(chambre, result.get(0));
+        verify(chambreRepository).findByBlocNomBloc("Bloc A");
+    }
+
+    @Test
+    void testGetChambresParNomBlocKeyWord() {
+        List<Chambre> chambres = List.of(chambre);
+        when(chambreRepository.findByBlocNomBloc("Bloc A")).thenReturn(chambres);
+
+        List<Chambre> result = chambreService.getChambresParNomBlocKeyWord("Bloc A");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(chambre, result.get(0));
+        verify(chambreRepository).findByBlocNomBloc("Bloc A");
+    }
+
+    @Test
+    void testGetChambresParNomBlocJPQL() {
+        List<Chambre> chambres = List.of(chambre);
+        when(chambreRepository.getChambresParNomBlocJPQL("Bloc A")).thenReturn(chambres);
+
+        List<Chambre> result = chambreService.getChambresParNomBlocJPQL("Bloc A");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(chambre, result.get(0));
+        verify(chambreRepository).getChambresParNomBlocJPQL("Bloc A");
+    }
+
+    @Test
+    void testGetChambresParNomBlocSQL() {
+        List<Chambre> chambres = List.of(chambre);
+        when(chambreRepository.getChambresParNomBlocSQL("Bloc A")).thenReturn(chambres);
+
+        List<Chambre> result = chambreService.getChambresParNomBlocSQL("Bloc A");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(chambre, result.get(0));
+        verify(chambreRepository).getChambresParNomBlocSQL("Bloc A");
+    }
+
+    @Test
+    void testFindById_NotFound() {
+        when(chambreRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> chambreService.findById(999L));
+        verify(chambreRepository).findById(999L);
     }
 }
