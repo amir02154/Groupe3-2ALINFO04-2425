@@ -8,8 +8,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tn.esprit.spring.DAO.Entities.Bloc;
 import tn.esprit.spring.DAO.Entities.Chambre;
+import tn.esprit.spring.DAO.Entities.Foyer;
 import tn.esprit.spring.DAO.Entities.TypeChambre;
 import tn.esprit.spring.DAO.Repositories.ChambreRepository;
+import tn.esprit.spring.DAO.Repositories.BlocRepository;
 import tn.esprit.spring.Services.Chambre.ChambreService;
 
 import java.util.ArrayList;
@@ -26,6 +28,9 @@ class ChambreServiceTest {
     @Mock
     private ChambreRepository chambreRepository;
 
+    @Mock
+    private BlocRepository blocRepository;
+
     @InjectMocks
     private ChambreService chambreService;
 
@@ -34,10 +39,17 @@ class ChambreServiceTest {
 
     @BeforeEach
     void setUp() {
+        Foyer foyer = Foyer.builder()
+                .idFoyer(1L)
+                .nomFoyer("Foyer A")
+                .capaciteFoyer(100)
+                .build();
+
         bloc = Bloc.builder()
                 .idBloc(1L)
                 .nomBloc("Bloc A")
                 .capaciteBloc(50)
+                .foyer(foyer)
                 .build();
 
         chambre = Chambre.builder()
@@ -45,6 +57,7 @@ class ChambreServiceTest {
                 .numeroChambre(101L)
                 .typeC(TypeChambre.SIMPLE)
                 .bloc(bloc)
+                .reservations(new ArrayList<>())
                 .build();
     }
 
@@ -140,18 +153,30 @@ class ChambreServiceTest {
 
     @Test
     void testListeChambresParBloc() {
+        when(blocRepository.findAll()).thenReturn(List.of(bloc));
+
         // Cette méthode ne retourne rien, on teste juste qu'elle ne lance pas d'exception
         assertDoesNotThrow(() -> chambreService.listeChambresParBloc());
     }
 
     @Test
     void testPourcentageChambreParTypeChambre() {
+        when(chambreRepository.count()).thenReturn(10L);
+        when(chambreRepository.countChambreByTypeC(TypeChambre.SIMPLE)).thenReturn(4L);
+        when(chambreRepository.countChambreByTypeC(TypeChambre.DOUBLE)).thenReturn(3L);
+        when(chambreRepository.countChambreByTypeC(TypeChambre.TRIPLE)).thenReturn(3L);
+
         // Cette méthode ne retourne rien, on teste juste qu'elle ne lance pas d'exception
         assertDoesNotThrow(() -> chambreService.pourcentageChambreParTypeChambre());
     }
 
     @Test
     void testNbPlacesDisponibleParChambreAnneeEnCours() {
+        when(chambreRepository.findAll()).thenReturn(List.of(chambre));
+        when(chambreRepository.countReservationsByIdChambreAndReservationsEstValideAndReservationsAnneeUniversitaireBetween(
+                anyLong(), anyBoolean(), any(), any()
+        )).thenReturn(0L);
+
         // Cette méthode ne retourne rien, on teste juste qu'elle ne lance pas d'exception
         assertDoesNotThrow(() -> chambreService.nbPlacesDisponibleParChambreAnneeEnCours());
     }
@@ -159,14 +184,25 @@ class ChambreServiceTest {
     @Test
     void testGetChambresParNomBlocJava() {
         List<Chambre> chambres = List.of(chambre);
-        when(chambreRepository.findByBlocNomBloc("Bloc A")).thenReturn(chambres);
+        when(blocRepository.findByNomBloc("Bloc A")).thenReturn(bloc);
 
         List<Chambre> result = chambreService.getChambresParNomBlocJava("Bloc A");
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(chambre, result.get(0));
-        verify(chambreRepository).findByBlocNomBloc("Bloc A");
+        verify(blocRepository).findByNomBloc("Bloc A");
+    }
+
+    @Test
+    void testGetChambresParNomBlocJava_BlocNotFound() {
+        when(blocRepository.findByNomBloc("Bloc Inexistant")).thenReturn(null);
+
+        List<Chambre> result = chambreService.getChambresParNomBlocJava("Bloc Inexistant");
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(blocRepository).findByNomBloc("Bloc Inexistant");
     }
 
     @Test
