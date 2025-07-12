@@ -172,4 +172,4 @@ class FoyerAspect4SIM2Test {
         assertThrows(RuntimeException.class, () -> aspect.profile(proceedingJoinPoint));
         verify(proceedingJoinPoint).proceed();
     }
-}
+} 

@@ -176,7 +176,7 @@ public class ReservationServiceTest {
     void testGetReservationParAnneeUniversitaire() {
         LocalDate debutAnnee = LocalDate.of(2024, 1, 1);
         LocalDate finAnnee = LocalDate.of(2024, 12, 31);
-        long expectedCount = 5L;
+        int expectedCount = 5;
 
         when(reservationRepository.countByAnneeUniversitaireBetween(debutAnnee, finAnnee)).thenReturn(expectedCount);
 
