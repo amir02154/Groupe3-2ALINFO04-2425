@@ -1,6 +1,8 @@
 package tn.esprit.spring.Config;
 
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import tn.esprit.spring.DAO.Entities.*;
@@ -18,6 +20,8 @@ import java.util.List;
 @AllArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
+
     private IUniversiteService universiteService;
     private IFoyerService foyerService;
     private IBlocService blocService;
@@ -30,14 +34,13 @@ public class DataInitializer implements CommandLineRunner {
         try {
             // Initialiser les données seulement si la base est vide
             if (universiteService.findAll().isEmpty()) {
-                System.out.println("🚀 Initialisation des données de test...");
+                logger.info("🚀 Initialisation des données de test...");
                 initializeTestData();
             } else {
-                System.out.println("✅ Données déjà présentes dans la base");
+                logger.info("✅ Données déjà présentes dans la base");
             }
         } catch (Exception e) {
-            System.err.println("❌ Erreur lors de l'initialisation des données: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("❌ Erreur lors de l'initialisation des données: {}", e.getMessage(), e);
         }
     }
 
@@ -137,18 +140,17 @@ public class DataInitializer implements CommandLineRunner {
                 reservationService.addOrUpdate(reservation);
             }
 
-            System.out.println("✅ Données de test initialisées avec succès !");
-            System.out.println("📊 Statistiques :");
-            System.out.println("   - Universités : " + universiteService.findAll().size());
-            System.out.println("   - Foyers : " + foyerService.findAll().size());
-            System.out.println("   - Blocs : " + blocService.findAll().size());
-            System.out.println("   - Chambres : " + chambreService.findAll().size());
-            System.out.println("   - Étudiants : " + etudiantService.findAll().size());
-            System.out.println("   - Réservations : " + reservationService.findAll().size());
+            logger.info("✅ Données de test initialisées avec succès !");
+            logger.info("📊 Statistiques :");
+            logger.info("   - Universités : {}", universiteService.findAll().size());
+            logger.info("   - Foyers : {}", foyerService.findAll().size());
+            logger.info("   - Blocs : {}", blocService.findAll().size());
+            logger.info("   - Chambres : {}", chambreService.findAll().size());
+            logger.info("   - Étudiants : {}", etudiantService.findAll().size());
+            logger.info("   - Réservations : {}", reservationService.findAll().size());
             
         } catch (Exception e) {
-            System.err.println("❌ Erreur lors de la création des données: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("❌ Erreur lors de la création des données: {}", e.getMessage(), e);
         }
     }
 } 
