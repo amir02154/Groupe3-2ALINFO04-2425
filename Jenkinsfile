@@ -138,6 +138,16 @@ pipeline {
                 }
             }
         }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    echo 'Nettoyage des ressources...'
+                    // Nettoyer les images Docker locales (optionnel)
+                    sh 'docker image prune -f || true'
+                }
+            }
+        }
     }
 
     post {
@@ -153,16 +163,6 @@ pipeline {
         
         failure {
             echo 'Pipeline a échoué!'
-        }
-        
-        cleanup {
-            script {
-                // Nettoyer les images Docker locales (optionnel)
-                sh 'docker image prune -f || true'
-                
-                // Arrêter les conteneurs en cas d'échec
-                sh 'docker-compose down || true'
-            }
         }
     }
 } 
