@@ -20,13 +20,7 @@ pipeline {
             }
         }
 
-        stage('Debug Info') {
-            steps {
-                echo "BRANCH: ${env.GIT_BRANCH}"
-                echo "COMMIT: ${env.GIT_COMMIT}"
-                echo "URL: ${env.GIT_URL}"
-            }
-        }
+
 
         stage('Clean') {
             steps {
@@ -144,6 +138,13 @@ pipeline {
                 sh 'mvn package -DskipTests'
             }
         }
+        stage('Deploy to Nexus') {
+                    steps {
+                        sh 'mvn deploy -DskipTests'
+                    }
+                }
+
+
 
         stage('Build & Push Docker Image') {
             steps {
@@ -168,6 +169,9 @@ pipeline {
                     docker rm -f foyer1-db-1 || true
                     docker rm -f foyer2-app-1 || true
                     docker rm -f foyer2-db-1 || true
+                    docker rm -f final-app-1 || true
+                    docker rm -f final-db-1 || true
+
                 '''
             }
         }
