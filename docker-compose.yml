@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Application Spring Boot
+  foyer-app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - nexus
+    networks:
+      - foyer-network
+
+  # Nexus Repository
+  nexus:
+    image: sonatype/nexus3:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - NEXUS_SECURITY_RANDOMPASSWORD=false
+    volumes:
+      - nexus-data:/nexus-data
+    networks:
+      - foyer-network
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - foyer-network
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - foyer-network
+
+volumes:
+  nexus-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  foyer-network:
+    driver: bridge 
