@@ -1,0 +1,121 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'M2_HOME'
+        jdk 'JAVA_HOME'
+    }
+
+    environment {
+        SONARQUBE_SCANNER_HOME = tool 'sonar-scanner'
+        SONAR_TOKEN = credentials('sonar-token')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'ahmed-mensi-etudiant',
+                    url: 'https://github.com/ahmedmensi/Groupe3-2ALINFO04-2425.git'
+            }
+        }
+
+        stage('Clean') {
+            steps {
+                sh 'mvn clean'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                sh 'mvn verify -DskipUnitTests'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package -DskipTests'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQubeServer') {
+                    sh 'mvn test jacoco:report'
+                    sh "mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN}"
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Trouver le nom du fichier JAR généré
+                    def jarFile = sh(
+                        script: 'find target -name "*.jar" -type f | head -1',
+                        returnStdout: true
+                    ).trim()
+                    
+                    echo "JAR file found: ${jarFile}"
+                    
+                    // Construire l'image Docker (localement seulement)
+                    sh 'docker build -t foyer-app:latest .'
+                }
+            }
+        }
+
+        stage('Deploy with Docker Compose') {
+            steps {
+                script {
+                    // Arrêter les conteneurs existants
+                    sh 'docker-compose down || true'
+                    
+                    // Démarrer les services avec docker-compose
+                    sh 'docker-compose up -d'
+                    
+                    // Attendre que l'application soit prête
+                    sh 'sleep 30'
+                    
+                    // Vérifier que l'application répond
+                    sh 'curl -f http://localhost:8080/actuator/health || exit 1'
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    echo 'Nettoyage des ressources...'
+                    // Nettoyer les images Docker locales (optionnel)
+                    sh 'docker image prune -f || true'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline terminé. Nettoyage ou notifications possibles ici.'
+        }
+        
+        success {
+            echo 'Pipeline exécuté avec succès!'
+            echo 'Application accessible sur: http://localhost:8080'
+        }
+        
+        failure {
+            echo 'Pipeline a échoué!'
+        }
+    }
+} 
