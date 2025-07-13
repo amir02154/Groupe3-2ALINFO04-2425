@@ -118,7 +118,7 @@ pipeline {
                     sh 'sleep 30'
                     
                     // Vérifier que l'application répond
-                    sh 'curl -f http://localhost:8080/actuator/health || exit 1'
+                    sh 'curl -f http://localhost:8081/actuator/health || exit 1'
                 }
             }
         }
@@ -163,7 +163,7 @@ pipeline {
         success {
             echo 'Pipeline exécuté avec succès!'
             echo "Image Docker: ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
-            echo 'Application accessible sur: http://localhost:8080'
+            echo 'Application accessible sur: http://localhost:8081'
         }
         
         failure {
