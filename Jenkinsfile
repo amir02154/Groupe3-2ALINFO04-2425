@@ -66,12 +66,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to Nexus') {
-            steps {
-                echo 'Déploiement sur Nexus...'
-                sh 'mvn deploy -DskipTests'
-            }
-        }
+
 
         stage('Build Docker Image') {
             steps {
