@@ -13,8 +13,20 @@ pipeline {
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                git branch: 'Amir-ben-othman-Foyer',
+                    url: 'https://github.com/ahmedmensi/Groupe3-2ALINFO04-2425.git'
+            }
+        }
 
-
+        stage('Debug Info') {
+            steps {
+                echo "BRANCH: ${env.GIT_BRANCH}"
+                echo "COMMIT: ${env.GIT_COMMIT}"
+                echo "URL: ${env.GIT_URL}"
+            }
+        }
 
         stage('Clean') {
             steps {
