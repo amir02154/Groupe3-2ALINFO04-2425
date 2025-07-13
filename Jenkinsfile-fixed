@@ -142,14 +142,7 @@ pipeline {
 
     post {
         always {
-            node {
-                timeout(time: 1, unit: 'MINUTES') {
-                    echo 'Pipeline terminé. Nettoyage ou notifications possibles ici.'
-                    
-                    // Nettoyer les images Docker locales (optionnel)
-                    sh 'docker image prune -f || true'
-                }
-            }
+            echo 'Pipeline terminé. Nettoyage ou notifications possibles ici.'
         }
         
         success {
@@ -159,8 +152,14 @@ pipeline {
         }
         
         failure {
-            node {
-                echo 'Pipeline a échoué!'
+            echo 'Pipeline a échoué!'
+        }
+        
+        cleanup {
+            script {
+                // Nettoyer les images Docker locales (optionnel)
+                sh 'docker image prune -f || true'
+                
                 // Arrêter les conteneurs en cas d'échec
                 sh 'docker-compose down || true'
             }
