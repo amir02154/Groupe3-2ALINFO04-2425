@@ -103,8 +103,13 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 script {
-                    // Arrêter les conteneurs existants
+                    // Arrêter tous les conteneurs existants
                     sh 'docker compose down || true'
+                    sh 'docker stop $(docker ps -q) || true'
+                    sh 'docker rm $(docker ps -aq) || true'
+                    
+                    // Attendre un peu pour libérer les ports
+                    sh 'sleep 5'
                     
                     // Démarrer les services avec docker-compose
                     sh 'docker compose up -d'
