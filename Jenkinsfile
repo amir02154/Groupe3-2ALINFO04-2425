@@ -104,10 +104,10 @@ pipeline {
             steps {
                 script {
                     // Arrêter les conteneurs existants
-                    sh 'docker-compose down || true'
+                    sh 'docker compose down || true'
                     
                     // Démarrer les services avec docker-compose
-                    sh 'docker-compose up -d'
+                    sh 'docker compose up -d'
                     
                     // Attendre que l'application soit prête
                     sh 'sleep 30'
