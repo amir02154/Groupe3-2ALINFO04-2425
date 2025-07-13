@@ -75,3 +75,5 @@ public class BlocServiceTest {
         verify(chambreRepository, times(2)).save(any(Chambre.class));
     }
 }
+
+//testing
