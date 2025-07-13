@@ -37,9 +37,13 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQubeServer') {
+                script {
+                    // Vérifier que SonarQube est accessible depuis WSL
+                    sh 'curl -f http://192.168.228.141:9000/api/system/status || echo "SonarQube not accessible"'
+                    
+                    // Exécuter l'analyse SonarQube
                     sh 'mvn test jacoco:report'
-                    sh "mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN}"
+                    sh "mvn sonar:sonar -Dsonar.host.url=http://192.168.228.141:9000 -Dsonar.login=${SONAR_TOKEN}"
                 }
             }
         }
@@ -114,6 +118,9 @@ pipeline {
                     // Démarrer les services avec docker-compose
                     sh 'docker compose up -d'
                     
+                    // Attendre que la base de données soit prête
+                    sh 'sleep 30'
+                    
                     // Attendre que l'application soit prête
                     sh 'sleep 30'
                     
@@ -123,23 +130,23 @@ pipeline {
             }
         }
 
-        stage('Monitoring Setup') {
+        stage('Application Setup') {
             steps {
                 script {
-                    echo 'Configuration de Prometheus et Grafana...'
+                    echo 'Configuration de l\'application...'
                     
-                    // Vérifier que Prometheus est accessible
+                    // Vérifier que la base de données est accessible
                     sh 'sleep 10'
-                    sh 'curl -f http://localhost:9090/-/healthy || echo "Prometheus not ready yet"'
+                    sh 'docker exec pipeline-db-1 mysql -uroot -proot -e "SELECT 1;" || echo "Database not ready yet"'
                     
-                    // Vérifier que Grafana est accessible
+                    // Vérifier que l'application répond
                     sh 'sleep 10'
-                    sh 'curl -f http://localhost:3000/api/health || echo "Grafana not ready yet"'
+                    sh 'curl -f http://localhost:8081/actuator/health || echo "Application not ready yet"'
                     
-                    echo 'Monitoring setup completed'
-                    echo 'Prometheus: http://localhost:9090'
-                    echo 'Grafana: http://localhost:3000 (admin/admin)'
-                    echo 'Nexus: http://localhost:8081'
+                    echo 'Application setup completed'
+                    echo 'Application: http://localhost:8081'
+                    echo 'Database: localhost:3306 (root/root)'
+                    echo 'SonarQube: http://192.168.228.141:9000 (admin/admin)'
                 }
             }
         }

@@ -1,65 +1,39 @@
+version: '3.8'
+
 services:
-  # Application Spring Boot
-  foyer-app:
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: foyer
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - foyer-net
+    restart: unless-stopped
+
+  app:
     build: .
+    depends_on:
+      - db
     ports:
       - "8081:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - nexus
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/foyer?createDatabaseIfNotExist=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
     networks:
-      - foyer-network
-
-  # Nexus Repository
-  nexus:
-    image: sonatype/nexus3:latest
-    ports:
-      - "8082:8081"
-    environment:
-      - NEXUS_SECURITY_RANDOMPASSWORD=false
-    volumes:
-      - nexus-data:/nexus-data
-    networks:
-      - foyer-network
-
-  # Prometheus
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    networks:
-      - foyer-network
-
-  # Grafana
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana-data:/var/lib/grafana
-    depends_on:
-      - prometheus
-    networks:
-      - foyer-network
+      - foyer-net
+    restart: unless-stopped
 
 volumes:
-  nexus-data:
-  prometheus-data:
-  grafana-data:
+  db-data:
 
 networks:
-  foyer-network:
+  foyer-net:
     driver: bridge 
