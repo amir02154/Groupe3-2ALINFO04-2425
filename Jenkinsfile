@@ -105,14 +105,52 @@ pipeline {
 
         stage('Quality Gate (Non-Blocking)') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(time: 3, unit: 'MINUTES') {
                     script {
-                        def qg = waitForQualityGate()
-                        echo "Quality Gate status: ${qg.status}"
-                        if (qg.status != 'OK') {
-                            echo "⚠️ Quality Gate échoué, mais le build continue (non-bloquant)."
-                        } else {
-                            echo "✅ Quality Gate OK."
+                        try {
+                            def qg = waitForQualityGate()
+                            echo "Quality Gate status: ${qg.status}"
+                            if (qg.status != 'OK') {
+                                echo "⚠️ Quality Gate failed, but build will continue..."
+
+                                withCredentials([
+                                    string(credentialsId: 'TELEGRAM_BOT_TOKEN', variable: 'BOT_TOKEN'),
+                                    string(credentialsId: 'TELEGRAM_CHAT_ID', variable: 'CHAT_ID')
+                                ]) {
+                                    def message = "⚠️ *Quality Gate échoué*\n"
+                                    message += "*Projet:* ${env.JOB_NAME}\n"
+                                    message += "*Build:* [#${env.BUILD_NUMBER}](${env.BUILD_URL})\n"
+                                    message += "*Statut:* ${qg.status}"
+
+                                    sh """
+                                        curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage \\
+                                            -d chat_id=${CHAT_ID} \\
+                                            -d parse_mode=Markdown \\
+                                            -d text="${message}"
+                                    """
+                                }
+                            }
+                        } catch (err) {
+                            echo "⚠️ Timeout ou erreur dans la récupération du Quality Gate"
+                            echo err.toString()
+
+
+                            withCredentials([
+                                string(credentialsId: 'TELEGRAM_BOT_TOKEN', variable: 'BOT_TOKEN'),
+                                string(credentialsId: 'TELEGRAM_CHAT_ID', variable: 'CHAT_ID')
+                            ]) {
+                                def message = "⚠️ *Quality Gate timeout ou erreur*\n"
+                                message += "*Projet:* ${env.JOB_NAME}\n"
+                                message += "*Build:* [#${env.BUILD_NUMBER}](${env.BUILD_URL})\n"
+                                message += "*Erreur:* ${err.toString()}"
+
+                                sh """
+                                    curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage \\
+                                        -d chat_id=${CHAT_ID} \\
+                                        -d parse_mode=Markdown \\
+                                        -d text="${message}"
+                                """
+                            }
                         }
                     }
                 }
