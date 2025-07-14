@@ -1,0 +1,45 @@
+{
+  "name": "High CPU Usage",
+  "folderUID": "general",
+  "interval": "1m",
+  "condition": "C",
+  "data": [
+    {
+      "refId": "A",
+      "queryType": "",
+      "datasourceUid": "prometheus",
+      "model": {
+        "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+        "interval": "",
+        "intervalFactor": 2,
+        "legendFormat": "{{instance}}",
+        "refId": "A"
+      }
+    }
+  ],
+  "noDataState": "NoData",
+  "execErrState": "Error",
+  "for": "5m",
+  "annotations": {},
+  "labels": {},
+  "isPaused": false,
+  "conditions": [
+    {
+      "evaluator": {
+        "params": [80],
+        "type": "gt"
+      },
+      "operator": {
+        "type": "and"
+      },
+      "query": {
+        "params": ["A"]
+      },
+      "reducer": {
+        "params": [],
+        "type": "avg"
+      },
+      "type": "query"
+    }
+  ]
+} 

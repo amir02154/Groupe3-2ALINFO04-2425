@@ -237,6 +237,17 @@ pipeline {
             }
         }
 
+        stage('Create Grafana Alert') {
+            steps {
+                sh '''
+                    curl -s -X POST http://172.29.215.125:3000/api/v1/provisioning/alert-rules \
+                        -H "Content-Type: application/json" \
+                        -u admin:123456aA \
+                        -d @monitoring/grafana-alert-rule.json
+                '''
+            }
+        }
+
         stage('Import Dashboard Grafana') {
             steps {
                 sh '''
