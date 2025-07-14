@@ -53,7 +53,7 @@ pipeline {
                     rm -rf jmeter/report
                     rm -f jmeter/results.jtl
                     mkdir -p jmeter/report
-                    /opt/jmeter/bin/jmeter -n -t jmeter/performance-test.jmx -l jmeter/results.jtl -e -o jmeter/report
+                    /opt/jmeter/bin/jmeter -n -t jmeter/performance-test-demo.jmx -l jmeter/results.jtl -e -o jmeter/report
                     tail -n 20 jmeter/results.jtl || true
                 '''
             }
