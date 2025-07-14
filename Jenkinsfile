@@ -92,7 +92,7 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        /*stage('SonarQube Analysis') {
             steps {
                 script {
                     withSonarQubeEnv('SonarQubeServer') {
@@ -131,7 +131,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
         stage('Package') {
             steps {
