@@ -105,7 +105,7 @@ pipeline {
 
         stage('Quality Gate (Non-Blocking)') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 1, unit: 'MINUTES') {
                     script {
                         def qg = waitForQualityGate()
                         echo "Quality Gate status: ${qg.status}"
