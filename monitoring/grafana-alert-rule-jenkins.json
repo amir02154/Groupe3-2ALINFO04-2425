@@ -1,0 +1,45 @@
+{
+  "name": "Jenkins Job Failed",
+  "folderUID": "general",
+  "interval": "1m",
+  "condition": "C",
+  "data": [
+    {
+      "refId": "A",
+      "queryType": "",
+      "datasourceUid": "prometheus",
+      "model": {
+        "expr": "jenkins_job_last_build_result{job=\"Groupe3-2ALINFO04-2425\"} == 2",
+        "interval": "",
+        "intervalFactor": 2,
+        "legendFormat": "{{job}}",
+        "refId": "A"
+      }
+    }
+  ],
+  "noDataState": "NoData",
+  "execErrState": "Error",
+  "for": "1m",
+  "annotations": {},
+  "labels": {},
+  "isPaused": false,
+  "conditions": [
+    {
+      "evaluator": {
+        "params": [0.5],
+        "type": "gt"
+      },
+      "operator": {
+        "type": "and"
+      },
+      "query": {
+        "params": ["A"]
+      },
+      "reducer": {
+        "params": [],
+        "type": "sum"
+      },
+      "type": "query"
+    }
+  ]
+} 

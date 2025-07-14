@@ -132,4 +132,36 @@ class EtudiantEntityTest {
         assertTrue(etudiant.getReservations().contains(reservation1));
         assertTrue(etudiant.getReservations().contains(reservation2));
     }
+
+    @Test
+    void testEtudiantWithNullReservations() {
+        Etudiant etudiant = new Etudiant();
+        etudiant.setReservations(null);
+        assertNull(etudiant.getReservations());
+    }
+
+    @Test
+    void testEqualsAndHashCodeWithNull() {
+        Etudiant etudiant = new Etudiant();
+        assertNotEquals(etudiant, null);
+        assertNotEquals(etudiant, new Object());
+        assertEquals(etudiant, etudiant);
+    }
+
+    @Test
+    void testMutateReservationsList() {
+        Etudiant etudiant = new Etudiant();
+        List<Reservation> reservations = new ArrayList<>();
+        etudiant.setReservations(reservations);
+        Reservation r = new Reservation();
+        reservations.add(r);
+        assertTrue(etudiant.getReservations().contains(r));
+    }
+
+    @Test
+    void testDateNaissanceNull() {
+        Etudiant etudiant = new Etudiant();
+        etudiant.setDateNaissance(null);
+        assertNull(etudiant.getDateNaissance());
+    }
 } 

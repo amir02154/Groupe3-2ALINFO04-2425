@@ -92,7 +92,7 @@ pipeline {
             }
         }
 
-        /*stage('SonarQube Analysis') {
+        stage('SonarQube Analysis') {
             steps {
                 script {
                     withSonarQubeEnv('SonarQubeServer') {
@@ -131,19 +131,19 @@ pipeline {
                     }
                 }
             }
-        }*/
+        }
 
         stage('Package') {
             steps {
                 sh 'mvn package -DskipTests'
             }
         }
-        stage('Deploy to Nexus') {
+       /* stage('Deploy to Nexus') {
                     steps {
                         sh 'mvn deploy -DskipTests'
                     }
                 }
-
+*/
 
 
         stage('Build & Push Docker Image') {
@@ -237,13 +237,24 @@ pipeline {
             }
         }
 
-        stage('Create Grafana Alert') {
+        stage('Create Jenkins Alert') {
             steps {
                 sh '''
                     curl -s -X POST http://172.29.215.125:3000/api/v1/provisioning/alert-rules \
                         -H "Content-Type: application/json" \
                         -u admin:123456aA \
-                        -d @monitoring/grafana-alert-rule.json
+                        -d @monitoring/grafana-alert-rule-jenkins.json
+                '''
+            }
+        }
+
+        stage('Import Jenkins Dashboard Grafana') {
+            steps {
+                sh '''
+                    curl -s -X POST http://172.29.215.125:3000/api/dashboards/db \
+                        -H "Content-Type: application/json" \
+                        -u admin:123456aA \
+                        -d @monitoring/grafana-dashboard-jenkins.json
                 '''
             }
         }
