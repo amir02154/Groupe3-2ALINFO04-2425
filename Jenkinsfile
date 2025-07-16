@@ -60,9 +60,16 @@ pipeline {
         stage('Download JAR from Nexus') {
             steps {
                 sh '''
+                REPO_URL="${NEXUS_URL}repository/maven-snapshots"
+                GROUP_ID="${GROUP_ID}"
+                ARTIFACT_ID="${ARTIFACT_ID}"
+                VERSION="${VERSION}"
+                GROUP_PATH=$(echo $GROUP_ID | tr '.' '/')
                 wget --user=${NEXUS_USER} --password=${NEXUS_PASS} \
-                "${NEXUS_URL}/repository/maven-snapshots/${GROUP_ID}/${ARTIFACT_ID}/${VERSION}/${ARTIFACT_ID}-${VERSION}.jar" \
-                -O app.jar
+                  "$REPO_URL/$GROUP_PATH/$ARTIFACT_ID/$VERSION/maven-metadata.xml" -O maven-metadata.xml
+                SNAPSHOT_VERSION=$(xmllint --xpath "//snapshotVersion[extension='jar']/value/text()" maven-metadata.xml)
+                wget --user=${NEXUS_USER} --password=${NEXUS_PASS} \
+                  "$REPO_URL/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$SNAPSHOT_VERSION.jar" -O app.jar
                 '''
             }
         }
