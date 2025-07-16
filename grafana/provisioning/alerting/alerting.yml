@@ -1,0 +1,6 @@
+apiVersion: 1
+
+groups:
+  - name: foyer_application_alerts
+    folder: Foyer Application
+    interval: 1m 

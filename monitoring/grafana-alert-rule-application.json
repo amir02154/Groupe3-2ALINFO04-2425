@@ -1,0 +1,324 @@
+{
+  "group": {
+    "name": "foyer_application_alerts",
+    "folder": "Foyer Application",
+    "interval": "1m"
+  },
+  "rules": [
+    {
+      "grafana_alert": {
+        "title": "High CPU Usage",
+        "condition": "B",
+        "data": [
+          {
+            "refId": "A",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 600,
+              "to": 0
+            },
+            "datasourceUid": "prometheus",
+            "model": {
+              "expr": "container_cpu_usage_seconds_total{name=\"foyer-app\"} > 0.8",
+              "intervalMs": 1000,
+              "maxDataPoints": 43200
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 0,
+              "to": 0
+            },
+            "datasourceUid": "__expr__",
+            "model": {
+              "conditions": [
+                {
+                  "evaluator": {
+                    "type": "gt",
+                    "params": [0]
+                  },
+                  "operator": {
+                    "type": "and"
+                  },
+                  "query": {
+                    "params": ["A"]
+                  },
+                  "reducer": {
+                    "type": "last",
+                    "params": []
+                  }
+                }
+              ],
+              "refId": "B"
+            }
+          }
+        ],
+        "noDataState": "NoData",
+        "execErrState": "Error"
+      },
+      "for": "2m",
+      "annotations": {
+        "summary": "High CPU usage detected on Foyer application",
+        "description": "Container {{ $labels.name }} has high CPU usage (>80%) for more than 2 minutes"
+      },
+      "labels": {
+        "severity": "warning",
+        "application": "foyer"
+      }
+    },
+    {
+      "grafana_alert": {
+        "title": "High Memory Usage",
+        "condition": "B",
+        "data": [
+          {
+            "refId": "A",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 600,
+              "to": 0
+            },
+            "datasourceUid": "prometheus",
+            "model": {
+              "expr": "container_memory_usage_bytes{name=\"foyer-app\"} / container_spec_memory_limit_bytes{name=\"foyer-app\"} > 0.85",
+              "intervalMs": 1000,
+              "maxDataPoints": 43200
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 0,
+              "to": 0
+            },
+            "datasourceUid": "__expr__",
+            "model": {
+              "conditions": [
+                {
+                  "evaluator": {
+                    "type": "gt",
+                    "params": [0]
+                  },
+                  "operator": {
+                    "type": "and"
+                  },
+                  "query": {
+                    "params": ["A"]
+                  },
+                  "reducer": {
+                    "type": "last",
+                    "params": []
+                  }
+                }
+              ],
+              "refId": "B"
+            }
+          }
+        ],
+        "noDataState": "NoData",
+        "execErrState": "Error"
+      },
+      "for": "2m",
+      "annotations": {
+        "summary": "High memory usage detected on Foyer application",
+        "description": "Container {{ $labels.name }} has high memory usage (>85%) for more than 2 minutes"
+      },
+      "labels": {
+        "severity": "warning",
+        "application": "foyer"
+      }
+    },
+    {
+      "grafana_alert": {
+        "title": "Application Down",
+        "condition": "B",
+        "data": [
+          {
+            "refId": "A",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 600,
+              "to": 0
+            },
+            "datasourceUid": "prometheus",
+            "model": {
+              "expr": "up{job=\"foyer-application\"} == 0",
+              "intervalMs": 1000,
+              "maxDataPoints": 43200
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 0,
+              "to": 0
+            },
+            "datasourceUid": "__expr__",
+            "model": {
+              "conditions": [
+                {
+                  "evaluator": {
+                    "type": "gt",
+                    "params": [0]
+                  },
+                  "operator": {
+                    "type": "and"
+                  },
+                  "query": {
+                    "params": ["A"]
+                  },
+                  "reducer": {
+                    "type": "last",
+                    "params": []
+                  }
+                }
+              ],
+              "refId": "B"
+            }
+          }
+        ],
+        "noDataState": "NoData",
+        "execErrState": "Error"
+      },
+      "for": "1m",
+      "annotations": {
+        "summary": "Foyer application is down",
+        "description": "Foyer application is not responding for more than 1 minute"
+      },
+      "labels": {
+        "severity": "critical",
+        "application": "foyer"
+      }
+    },
+    {
+      "grafana_alert": {
+        "title": "High Error Rate",
+        "condition": "B",
+        "data": [
+          {
+            "refId": "A",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 600,
+              "to": 0
+            },
+            "datasourceUid": "prometheus",
+            "model": {
+              "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) > 0.1",
+              "intervalMs": 1000,
+              "maxDataPoints": 43200
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 0,
+              "to": 0
+            },
+            "datasourceUid": "__expr__",
+            "model": {
+              "conditions": [
+                {
+                  "evaluator": {
+                    "type": "gt",
+                    "params": [0]
+                  },
+                  "operator": {
+                    "type": "and"
+                  },
+                  "query": {
+                    "params": ["A"]
+                  },
+                  "reducer": {
+                    "type": "last",
+                    "params": []
+                  }
+                }
+              ],
+              "refId": "B"
+            }
+          }
+        ],
+        "noDataState": "NoData",
+        "execErrState": "Error"
+      },
+      "for": "2m",
+      "annotations": {
+        "summary": "High error rate detected on Foyer application",
+        "description": "Error rate is higher than 10% for more than 2 minutes"
+      },
+      "labels": {
+        "severity": "critical",
+        "application": "foyer"
+      }
+    },
+    {
+      "grafana_alert": {
+        "title": "Slow Response Time",
+        "condition": "B",
+        "data": [
+          {
+            "refId": "A",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 600,
+              "to": 0
+            },
+            "datasourceUid": "prometheus",
+            "model": {
+              "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2",
+              "intervalMs": 1000,
+              "maxDataPoints": 43200
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "",
+            "relativeTimeRange": {
+              "from": 0,
+              "to": 0
+            },
+            "datasourceUid": "__expr__",
+            "model": {
+              "conditions": [
+                {
+                  "evaluator": {
+                    "type": "gt",
+                    "params": [0]
+                  },
+                  "operator": {
+                    "type": "and"
+                  },
+                  "query": {
+                    "params": ["A"]
+                  },
+                  "reducer": {
+                    "type": "last",
+                    "params": []
+                  }
+                }
+              ],
+              "refId": "B"
+            }
+          }
+        ],
+        "noDataState": "NoData",
+        "execErrState": "Error"
+      },
+      "for": "2m",
+      "annotations": {
+        "summary": "Slow response time detected on Foyer application",
+        "description": "95th percentile response time is higher than 2 seconds for more than 2 minutes"
+      },
+      "labels": {
+        "severity": "warning",
+        "application": "foyer"
+      }
+    }
+  ]
+} 
