@@ -1,5 +1,6 @@
 package tn.esprit.spring;
 
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -21,59 +22,158 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
+
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import tn.esprit.spring.DAO.Entities.Bloc;
+import tn.esprit.spring.DAO.Entities.Chambre;
+import tn.esprit.spring.DAO.Entities.Foyer;
+import tn.esprit.spring.DAO.Repositories.BlocRepository;
+import tn.esprit.spring.DAO.Repositories.ChambreRepository;
+import tn.esprit.spring.DAO.Repositories.FoyerRepository;
+import tn.esprit.spring.Services.Bloc.BlocService;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class BlocServiceTest {
+class BlocServiceTest {
+
     @Mock
     BlocRepository blocRepository;
+
     @Mock
     ChambreRepository chambreRepository;
 
+    @Mock
+    FoyerRepository foyerRepository;
+
     @InjectMocks
     BlocService blocService;
+
+    Bloc bloc;
+    Chambre chambre;
+
+    @BeforeEach
+    void setup() {
+        chambre = Chambre.builder().numeroChambre(101L).build();
+        bloc = Bloc.builder()
+                .idBloc(1L)
+                .nomBloc("Bloc A")
+                .chambres(List.of(chambre))
+                .build();
+    }
+
     @Test
-    @Order(1)
-    public void testAddOrUpdate() {
-        Chambre chambre1 = new Chambre();
-        chambre1.setNumeroChambre(101L);
-        Chambre chambre2 = new Chambre();
-        chambre2.setNumeroChambre(102L);
+    void testAddOrUpdate() {
+        when(blocRepository.save(any(Bloc.class))).thenReturn(bloc);
 
-        List<Chambre> chambres = new ArrayList<>();
-        chambres.add(chambre1);
-        chambres.add(chambre2);
-        //Créer un bloc avec ces chambres
-        //Le bloc s'appelle "Bloc A" et contient les 2 chambres.
-        Bloc bloc = new Bloc();
-        bloc.setNomBloc("Bloc A");
-        bloc.setChambres(chambres);
+        Bloc savedBloc = blocService.addOrUpdate(bloc);
 
-        Bloc savedBloc = new Bloc();
-        savedBloc.setIdBloc(1L);
-        savedBloc.setNomBloc("Bloc A");
-        savedBloc.setChambres(chambres);
+        assertNotNull(savedBloc);
+        verify(chambreRepository, times(1)).save(any(Chambre.class));
+        verify(blocRepository, times(1)).save(any(Bloc.class));
+    }
 
-        //On simule blocRepository.save(...) pour qu’il retourne un Bloc déjà sauvegardé.
-        //On simule chambreRepository.save(...) pour qu’il retourne la chambre passée
-        // en paramètre (pas de vrai enregistrement, c’est un mock !).
+    @Test
+    void testFindAll() {
+        when(blocRepository.findAll()).thenReturn(List.of(bloc));
+        List<Bloc> blocs = blocService.findAll();
 
-        when(blocRepository.save(any(Bloc.class))).thenReturn(savedBloc);
-        when(chambreRepository.save(any(Chambre.class))).thenAnswer(i -> i.getArgument(0));
+        assertEquals(1, blocs.size());
+    }
 
-        // Appeler la méthode testée
-        //On appelle la méthode addOrUpdate avec notre bloc simulé.
+    @Test
+    void testFindById_found() {
+        when(blocRepository.findById(1L)).thenReturn(Optional.of(bloc));
+        Bloc result = blocService.findById(1L);
 
-        Bloc result = blocService.addOrUpdate(bloc);
+        assertNotNull(result);
+        assertEquals(1L, result.getIdBloc());
+    }
 
-        // Le bloc retourné ne doit pas être null.
-        // Le nom du bloc retourné doit être "Bloc A".
-        // On vérifie que la méthode save(...) de chambreRepository a bien été appelée
-        // deux fois, une pour chaque chambre.
+    @Test
+    void testFindById_notFound() {
+        when(blocRepository.findById(2L)).thenReturn(Optional.empty());
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("Bloc A", result.getNomBloc());
-        verify(chambreRepository, times(2)).save(any(Chambre.class));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> blocService.findById(2L));
+        assertTrue(ex.getMessage().contains("Bloc not found"));
+    }
+
+    @Test
+    void testDeleteById_found() {
+        when(blocRepository.findById(1L)).thenReturn(Optional.of(bloc));
+        blocService.deleteById(1L);
+
+        verify(chambreRepository).deleteAll(bloc.getChambres());
+        verify(blocRepository).delete(bloc);
+    }
+
+    @Test
+    void testDeleteById_notFound() {
+        when(blocRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> blocService.deleteById(99L));
+    }
+
+    @Test
+    void testDeleteBloc() {
+        blocService.delete(bloc);
+
+        verify(chambreRepository).deleteAll(bloc.getChambres());
+        verify(blocRepository).delete(bloc);
+    }
+
+    @Test
+    void testAffecterChambresABloc() {
+        when(blocRepository.findByNomBloc("Bloc A")).thenReturn(bloc);
+        when(chambreRepository.findByNumeroChambre(101L)).thenReturn(chambre);
+
+        Bloc result = blocService.affecterChambresABloc(List.of(101L), "Bloc A");
+
+        assertEquals("Bloc A", result.getNomBloc());
+        verify(chambreRepository).save(any(Chambre.class));
+    }
+
+    @Test
+    void testAffecterBlocAFoyer() {
+        Foyer foyer = Foyer.builder().nomFoyer("Foyer X").build();
+        when(blocRepository.findByNomBloc("Bloc A")).thenReturn(bloc);
+        when(foyerRepository.findByNomFoyer("Foyer X")).thenReturn(foyer);
+        when(blocRepository.save(any(Bloc.class))).thenReturn(bloc);
+
+        Bloc result = blocService.affecterBlocAFoyer("Bloc A", "Foyer X");
+
+        assertEquals(foyer, result.getFoyer());
+        verify(blocRepository).save(any(Bloc.class));
+    }
+
+    @Test
+    void testAjouterBlocEtSesChambres() {
+        Bloc blocWithChambres = Bloc.builder().chambres(List.of(chambre)).build();
+
+        Bloc result = blocService.ajouterBlocEtSesChambres(blocWithChambres);
+
+        verify(chambreRepository).save(any(Chambre.class));
+        assertNotNull(result);
+    }
+
+    @Test
+    void testAjouterBlocEtAffecterAFoyer() {
+        Foyer foyer = Foyer.builder().nomFoyer("Foyer Y").build();
+        when(foyerRepository.findByNomFoyer("Foyer Y")).thenReturn(foyer);
+        when(blocRepository.save(any(Bloc.class))).thenReturn(bloc);
+
+        Bloc result = blocService.ajouterBlocEtAffecterAFoyer(bloc, "Foyer Y");
+
+        assertEquals(foyer, result.getFoyer());
+        verify(blocRepository).save(any(Bloc.class));
     }
 }
-
 
