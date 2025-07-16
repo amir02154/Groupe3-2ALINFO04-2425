@@ -12,9 +12,9 @@ pipeline {
         DOCKER_IMAGE_NAME = 'ahmedmenssi624/foyer-app'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         DOCKER_USERNAME = 'ahmedmenssi624@gmail.com'
-        DOCKER_PASSWORD = credentials('14771938Aze-')
-        NEXUS_USER = credentials('admin')
-        NEXUS_PASS = credentials('admin')
+        DOCKER_PASSWORD = credentials('docker-hub-password')
+        NEXUS_USER = credentials('nexus-username')
+        NEXUS_PASS = credentials('nexus-password')
         NEXUS_URL = 'http://192.168.228.141:8081/'
         GROUP_ID = 'tn/esprit/DevOps'
         ARTIFACT_ID = 'Groupe12Alinfo42425'
