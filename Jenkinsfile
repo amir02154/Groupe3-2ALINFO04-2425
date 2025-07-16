@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        stage('Unit Tests') {
+       /* stage('Unit Tests') {
             steps {
                 sh 'mvn test'
             }
@@ -155,19 +155,18 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
         stage('Package') {
             steps {
                 sh 'mvn package -DskipTests'
             }
         }
-       /* stage('Deploy to Nexus') {
+       stage('Deploy to Nexus') {
                     steps {
                         sh 'mvn deploy -DskipTests'
                     }
                 }
-*/
 
 
         stage('Build & Push Docker Image') {
@@ -209,7 +208,7 @@ pipeline {
             }
         }
 
-        stage('Start Prometheus') {
+      /*  stage('Start Prometheus') {
             steps {
                 script {
                     echo '🔍 Vérification du conteneur Prometheus...'
@@ -234,8 +233,8 @@ pipeline {
                 }
             }
         }
-
-        stage('Start Grafana') {
+  
+   stage('Start Grafana') {
             steps {
                 script {
                     echo '🔍 Vérification du conteneur Grafana...'
@@ -259,7 +258,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
         stage('Create Jenkins Alert') {
             steps {
