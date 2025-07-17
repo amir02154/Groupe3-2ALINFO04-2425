@@ -263,20 +263,18 @@ pipeline {
             }
         }
 
-      stage('Create Jenkins Full Metrics Dashboard') {
+     stage('Create Jenkins Metrics Dashboard') {
     steps {
         sh '''
-            set -ex
-            echo "Début du stage"
-            cat > jenkins_full_metrics_dashboard.json <<EOF
+            cat > jenkins_metrics_dashboard.json <<EOF
             {
               "dashboard": {
-                "id": null,
-                "title": "Jenkins Full Metrics Dashboard",
+                "title": "Jenkins Metrics (via Prometheus)",
+                "uid": "jenkins-metrics",
                 "panels": [
                   {
                     "type": "stat",
-                    "title": "Builds Success",
+                    "title": "✅ Builds Success",
                     "targets": [
                       {
                         "expr": "sum(jenkins_job_last_build_result{result=\\"SUCCESS\\"})",
@@ -288,7 +286,7 @@ pipeline {
                   },
                   {
                     "type": "stat",
-                    "title": "Builds Failed",
+                    "title": "❌ Builds Failed",
                     "targets": [
                       {
                         "expr": "sum(jenkins_job_last_build_result{result=\\"FAILURE\\"})",
@@ -299,32 +297,8 @@ pipeline {
                     "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
                   },
                   {
-                    "type": "stat",
-                    "title": "Builds Unstable",
-                    "targets": [
-                      {
-                        "expr": "sum(jenkins_job_last_build_result{result=\\"UNSTABLE\\"})",
-                        "legendFormat": "Unstable"
-                      }
-                    ],
-                    "datasource": "Prometheus",
-                    "gridPos": { "h": 4, "w": 6, "x": 0, "y": 4 }
-                  },
-                  {
-                    "type": "stat",
-                    "title": "Builds Aborted",
-                    "targets": [
-                      {
-                        "expr": "sum(jenkins_job_last_build_result{result=\\"ABORTED\\"})",
-                        "legendFormat": "Aborted"
-                      }
-                    ],
-                    "datasource": "Prometheus",
-                    "gridPos": { "h": 4, "w": 6, "x": 6, "y": 4 }
-                  },
-                  {
                     "type": "gauge",
-                    "title": "Average Build Duration (s)",
+                    "title": "⏱️ Avg Build Duration (s)",
                     "targets": [
                       {
                         "expr": "avg(jenkins_job_last_build_duration_seconds)",
@@ -334,14 +308,15 @@ pipeline {
                     "datasource": "Prometheus",
                     "fieldConfig": {
                       "defaults": {
-                        "min": 0
+                        "min": 0,
+                        "unit": "s"
                       }
                     },
-                    "gridPos": { "h": 4, "w": 12, "x": 0, "y": 8 }
+                    "gridPos": { "h": 5, "w": 12, "x": 0, "y": 4 }
                   },
                   {
                     "type": "stat",
-                    "title": "Running Builds",
+                    "title": "⚙️ Builds Running",
                     "targets": [
                       {
                         "expr": "sum(jenkins_job_building)",
@@ -349,11 +324,11 @@ pipeline {
                       }
                     ],
                     "datasource": "Prometheus",
-                    "gridPos": { "h": 4, "w": 6, "x": 0, "y": 12 }
+                    "gridPos": { "h": 4, "w": 6, "x": 0, "y": 10 }
                   },
                   {
                     "type": "stat",
-                    "title": "Build Queue Size",
+                    "title": "📥 Queue Size",
                     "targets": [
                       {
                         "expr": "sum(jenkins_queue_size_value)",
@@ -361,50 +336,25 @@ pipeline {
                       }
                     ],
                     "datasource": "Prometheus",
-                    "gridPos": { "h": 4, "w": 6, "x": 6, "y": 12 }
-                  },
-                  {
-                    "type": "timeseries",
-                    "title": "CPU Usage (Jenkins)",
-                    "targets": [
-                      {
-                        "expr": "process_cpu_seconds_total",
-                        "legendFormat": "CPU"
-                      }
-                    ],
-                    "datasource": "Prometheus",
-                    "gridPos": { "h": 6, "w": 12, "x": 0, "y": 16 }
-                  },
-                  {
-                    "type": "timeseries",
-                    "title": "Memory Usage (Jenkins)",
-                    "targets": [
-                      {
-                        "expr": "process_resident_memory_bytes",
-                        "legendFormat": "Memory"
-                      }
-                    ],
-                    "datasource": "Prometheus",
-                    "gridPos": { "h": 6, "w": 12, "x": 0, "y": 22 }
+                    "gridPos": { "h": 4, "w": 6, "x": 6, "y": 10 }
                   }
                 ],
                 "schemaVersion": 30,
                 "version": 1,
                 "overwrite": true
-              }
+              },
+              "overwrite": true
             }
             EOF
-            echo "Fichier JSON généré"
-            cat jenkins_full_metrics_dashboard.json
-            echo "Envoi du dashboard à Grafana"
-            curl -v -X POST http://172.29.215.125:3000/api/dashboards/db \
-                -H "Content-Type: application/json" \
-                -u admin:123456aA \
-                -d @jenkins_full_metrics_dashboard.json
-            echo "Fin du stage"
+
+            curl -s -X POST http://172.29.215.125:3000/api/dashboards/db \
+              -H "Content-Type: application/json" \
+              -u admin:123456aA \
+              -d @jenkins_metrics_dashboard.json
         '''
     }
 }
+
        
 
         stage('Import Dashboard Grafana') {
