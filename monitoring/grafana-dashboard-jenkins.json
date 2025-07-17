@@ -10,7 +10,7 @@
     {
       "type": "stat",
       "title": "Build Success Rate (%)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "sum(jenkins_job_builds_successful_total) / (sum(jenkins_job_builds_successful_total) + sum(jenkins_job_builds_failed_total)) * 100",
@@ -30,7 +30,7 @@
     {
       "type": "stat",
       "title": "Builds Failed (Total)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "sum(jenkins_job_builds_failed_total)",
@@ -47,7 +47,7 @@
     {
       "type": "stat",
       "title": "Builds Success (Total)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "sum(jenkins_job_builds_successful_total)",
@@ -64,7 +64,7 @@
     {
       "type": "timeseries",
       "title": "Build Duration (s)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "avg(jenkins_job_last_build_duration_seconds)",
@@ -81,7 +81,7 @@
     {
       "type": "stat",
       "title": "Builds in Queue",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "sum(jenkins_queue_size)",
@@ -98,7 +98,7 @@
     {
       "type": "stat",
       "title": "Jenkins CPU Usage (seconds)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "sum(process_cpu_seconds_total{job=\"jenkins\"})",
@@ -115,7 +115,7 @@
     {
       "type": "stat",
       "title": "Jenkins Memory Usage (bytes)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "sum(process_resident_memory_bytes{job=\"jenkins\"})",
@@ -132,7 +132,7 @@
     {
       "type": "table",
       "title": "Last Build Status by Job",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "jenkins_job_last_build_result",
@@ -149,7 +149,7 @@
     {
       "type": "stat",
       "title": "Jenkins JVM Heap Memory Used",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "jvm_memory_bytes_used{area=\"heap\"}",
@@ -166,7 +166,7 @@
     {
       "type": "stat",
       "title": "Jenkins JVM Heap Memory Max",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "jvm_memory_bytes_max{area=\"heap\"}",
@@ -183,7 +183,7 @@
     {
       "type": "stat",
       "title": "Jenkins JVM Total Memory Used",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "sum(jvm_memory_bytes_used)",
@@ -200,7 +200,7 @@
     {
       "type": "stat",
       "title": "Jenkins CPU Usage (%)",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "targets": [
         {
           "expr": "rate(process_cpu_seconds_total[1m]) / 4 * 100",
