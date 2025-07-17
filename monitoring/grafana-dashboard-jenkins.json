@@ -96,6 +96,40 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 }
     },
     {
+      "type": "stat",
+      "title": "Jenkins CPU Usage (seconds)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(process_cpu_seconds_total{job=\"jenkins\"})",
+          "legendFormat": "CPU Usage (s)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s", "decimals": 2 },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 22 }
+    },
+    {
+      "type": "stat",
+      "title": "Jenkins Memory Usage (bytes)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(process_resident_memory_bytes{job=\"jenkins\"})",
+          "legendFormat": "Memory Usage (bytes)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "decimals": 2 },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 22 }
+    },
+    {
       "type": "table",
       "title": "Last Build Status by Job",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
