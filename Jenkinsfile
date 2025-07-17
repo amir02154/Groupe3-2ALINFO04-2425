@@ -189,12 +189,13 @@ pipeline {
         stage('Clean Old Containers') {
             steps {
                 sh '''
-                    docker rm -f foyer1-app-1 || true
-                    docker rm -f foyer1-db-1 || true
+                    docker rm -f lastfoyer-app-1 || true
+                    docker rm -f lastfoyer-app-1 || true
                     docker rm -f foyer2-app-1 || true
                     docker rm -f foyer2-db-1 || true
                     docker rm -f final-app-1 || true
                     docker rm -f final-db-1 || true
+                    
 
                 '''
             }
@@ -261,27 +262,28 @@ pipeline {
             }
         }
 
-        stage('Create Jenkins Alert') {
-            steps {
-                sh '''
-                    curl -s -X POST http://172.29.215.125:3000/api/v1/provisioning/alert-rules \
-                        -H "Content-Type: application/json" \
-                        -u admin:123456aA \
-                        -d @monitoring/grafana-alert-rule-jenkins.json
-                '''
-            }
-        }
+       stage('Import Jenkins Grafana Dashboard') {
+    steps {
+        sh '''
+            curl -s https://grafana.com/api/dashboards/11074/revisions/1/download -o jenkins_dashboard.json
+            jq -s '{
+                dashboard: .[0],
+                inputs: [{
+                    name: "DS_PROMETHEUS",
+                    type: "datasource",
+                    pluginId: "prometheus",
+                    value: "Prometheus"
+                }],
+                overwrite: true
+            }' jenkins_dashboard.json > payload_jenkins_dashboard.json
 
-        stage('Import Jenkins Dashboard Grafana') {
-            steps {
-                sh '''
-                    curl -s -X POST http://172.29.215.125:3000/api/dashboards/db \
-                        -H "Content-Type: application/json" \
-                        -u admin:123456aA \
-                        -d @monitoring/grafana-dashboard-jenkins.json
-                '''
-            }
-        }
+            curl -s -X POST http://172.29.215.125:3000/api/dashboards/import \
+                -H "Content-Type: application/json" \
+                -u admin:123456aA \
+                -d @payload_jenkins_dashboard.json
+        '''
+    }
+}
 
         stage('Import Dashboard Grafana') {
             steps {
