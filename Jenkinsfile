@@ -263,9 +263,11 @@ pipeline {
             }
         }
 
-       stage('Create Jenkins Full Metrics Dashboard') {
+      stage('Create Jenkins Full Metrics Dashboard') {
     steps {
         sh '''
+            set -ex
+            echo "Début du stage"
             cat > jenkins_full_metrics_dashboard.json <<EOF
             {
               "dashboard": {
@@ -392,16 +394,17 @@ pipeline {
               }
             }
             EOF
-
+            echo "Fichier JSON généré"
+            cat jenkins_full_metrics_dashboard.json
             echo "Envoi du dashboard à Grafana"
             curl -v -X POST http://172.29.215.125:3000/api/dashboards/db \
                 -H "Content-Type: application/json" \
                 -u admin:123456aA \
                 -d @jenkins_full_metrics_dashboard.json
+            echo "Fin du stage"
         '''
     }
 }
-
        
 
         stage('Import Dashboard Grafana') {
