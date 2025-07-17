@@ -1,121 +1,118 @@
 {
-  "dashboard": {
-    "id": null,
-    "uid": "jenkins-creative-dashboard",
-    "title": "Jenkins Creative Dashboard",
-    "timezone": "browser",
-    "schemaVersion": 30,
-    "version": 1,
-    "refresh": "30s",
-    "panels": [
-      {
-        "type": "stat",
-        "title": "Build Success Rate (%)",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "targets": [
-          {
-            "expr": "sum(jenkins_job_builds_successful_total) / (sum(jenkins_job_builds_successful_total) + sum(jenkins_job_builds_failed_total)) * 100",
-            "legendFormat": "Success Rate",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "decimals": 2
-          },
-          "overrides": []
+  "id": null,
+  "uid": "jenkins-creative-dashboard",
+  "title": "Jenkins Creative Dashboard",
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Build Success Rate (%)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(jenkins_job_builds_successful_total) / (sum(jenkins_job_builds_successful_total) + sum(jenkins_job_builds_failed_total)) * 100",
+          "legendFormat": "Success Rate",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2
         },
-        "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 }
+        "overrides": []
       },
-      {
-        "type": "stat",
-        "title": "Builds Failed (Total)",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "targets": [
-          {
-            "expr": "sum(jenkins_job_builds_failed_total)",
-            "legendFormat": "Failed Builds",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": { "unit": "none" },
-          "overrides": []
-        },
-        "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 }
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Builds Failed (Total)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(jenkins_job_builds_failed_total)",
+          "legendFormat": "Failed Builds",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none" },
+        "overrides": []
       },
-      {
-        "type": "stat",
-        "title": "Builds Success (Total)",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "targets": [
-          {
-            "expr": "sum(jenkins_job_builds_successful_total)",
-            "legendFormat": "Success Builds",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": { "unit": "none" },
-          "overrides": []
-        },
-        "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 }
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Builds Success (Total)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(jenkins_job_builds_successful_total)",
+          "legendFormat": "Success Builds",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none" },
+        "overrides": []
       },
-      {
-        "type": "timeseries",
-        "title": "Build Duration (s)",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "targets": [
-          {
-            "expr": "avg(jenkins_job_last_build_duration_seconds)",
-            "legendFormat": "Avg Duration",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": { "unit": "s", "decimals": 2 },
-          "overrides": []
-        },
-        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 }
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Build Duration (s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "avg(jenkins_job_last_build_duration_seconds)",
+          "legendFormat": "Avg Duration",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s", "decimals": 2 },
+        "overrides": []
       },
-      {
-        "type": "stat",
-        "title": "Builds in Queue",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "targets": [
-          {
-            "expr": "sum(jenkins_queue_size)",
-            "legendFormat": "Queue Size",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": { "unit": "none" },
-          "overrides": []
-        },
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 }
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 }
+    },
+    {
+      "type": "stat",
+      "title": "Builds in Queue",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(jenkins_queue_size)",
+          "legendFormat": "Queue Size",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none" },
+        "overrides": []
       },
-      {
-        "type": "table",
-        "title": "Last Build Status by Job",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "targets": [
-          {
-            "expr": "jenkins_job_last_build_result",
-            "legendFormat": "{{job}}",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
-        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 }
-      }
-    ],
-    "templating": { "list": [] },
-    "annotations": { "list": [] }
-  },
-  "overwrite": true
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 }
+    },
+    {
+      "type": "table",
+      "title": "Last Build Status by Job",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "jenkins_job_last_build_result",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] }
 } 
