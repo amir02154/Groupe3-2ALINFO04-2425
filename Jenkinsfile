@@ -263,51 +263,6 @@ pipeline {
             }
         }
 
- stage('Create Simple Test Dashboard Grafana') {
-    steps {
-        sh '''
-            echo "🛠️ Création du dashboard personnalisé Jenkins/Grafana..."
-
-            cat > grafana_dashboard_payload.json <<EOF
-            {
-              "dashboard": {
-                "id": null,
-                "uid": "jenkins-test",
-                "title": "Test Dashboard Jenkins",
-                "timezone": "browser",
-                "schemaVersion": 30,
-                "version": 1,
-                "overwrite": true,
-                "panels": [
-                  {
-                    "type": "stat",
-                    "title": "Example Stat Panel",
-                    "datasource": "Prometheus",
-                    "targets": [
-                      {
-                        "expr": "up",
-                        "legendFormat": "UP"
-                      }
-                    ],
-                    "gridPos": { "x": 0, "y": 0, "w": 12, "h": 4 }
-                  }
-                ]
-              },
-              "overwrite": true
-            }
-            EOF
-
-            echo "--- Payload Grafana ---"
-            cat grafana_dashboard_payload.json
-
-            echo "--- Envoi vers Grafana ---"
-            curl -v -X POST http://172.29.215.125:3000/api/dashboards/db \
-              -H "Content-Type: application/json" \
-              -u admin:123456aA \
-              -d @grafana_dashboard_payload.json
-        '''
-    }
-}
 
 
         stage('Import Dashboard Grafana') {
@@ -329,6 +284,30 @@ pipeline {
                         -H "Content-Type: application/json" \
                         -u admin:123456aA \
                         -d @payload_dashboard_9964.json
+                '''
+            }
+        }
+
+        stage('Import Jenkins Metrics Dashboard') {
+            steps {
+                sh '''
+                    cp monitoring/grafana-dashboard-jenkins.json jenkins_metrics_dashboard.json
+
+                    jq -s '{
+                        dashboard: .[0],
+                        inputs: [{
+                            name: "DS_PROMETHEUS",
+                            type: "datasource",
+                            pluginId: "prometheus",
+                            value: "Prometheus"
+                        }],
+                        overwrite: true
+                    }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
+
+                    curl -s -X POST http://172.29.215.125:3000/api/dashboards/import \
+                        -H "Content-Type: application/json" \
+                        -u admin:123456aA \
+                        -d @payload_jenkins_dashboard_jenkins.json
                 '''
             }
         }
