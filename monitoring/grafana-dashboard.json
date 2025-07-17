@@ -1,42 +1,110 @@
 {
-    "dashboard": {
-      "id": null,
-      "uid": null,
-      "title": "Alertes Prometheus",
-      "tags": ["alert"],
-      "timezone": "browser",
-      "panels": [
-        {
-          "type": "graph",
-          "title": "CPU Usage",
-          "targets": [
+  "dashboard": {
+    "id": null,
+    "uid": null,
+    "title": "Alertes Prometheus",
+    "tags": ["alert", "prometheus"],
+    "timezone": "browser",
+    "schemaVersion": 26,
+    "version": 0,
+    "panels": [
+      {
+        "type": "graph",
+        "title": "CPU Usage",
+        "targets": [
+          { "expr": "process_cpu_seconds_total", "legendFormat": "CPU", "refId": "A" }
+        ],
+        "alert": {
+          "name": "CPU High",
+          "conditions": [
             {
-              "expr": "process_cpu_seconds_total",
-              "legendFormat": "CPU",
-              "refId": "A"
+              "evaluator": { "params": [0.5], "type": "gt" },
+              "operator": { "type": "and" },
+              "query": { "params": ["A"] },
+              "reducer": { "params": [], "type": "avg" },
+              "type": "query"
             }
           ],
-          "alert": {
-            "name": "CPU High",
-            "conditions": [
-              {
-                "evaluator": { "params": [0.5], "type": "gt" },
-                "operator": { "type": "and" },
-                "query": { "params": ["A"] },
-                "reducer": { "params": [], "type": "avg" },
-                "type": "query"
-              }
-            ],
-            "executionErrorState": "alerting",
-            "for": "1m",
-            "frequency": "1m",
-            "handler": 1,
-            "message": "CPU usage is high"
-          }
+          "executionErrorState": "alerting",
+          "for": "1m",
+          "frequency": "1m",
+          "handler": 1,
+          "message": "CPU usage is high"
         }
-      ],
-      "schemaVersion": 26,
-      "version": 0
-    },
-    "overwrite": true
-  }
+      },
+      {
+        "type": "graph",
+        "title": "Memory Usage",
+        "targets": [
+          { "expr": "process_resident_memory_bytes", "legendFormat": "Memory", "refId": "A" }
+        ],
+        "alert": {
+          "name": "Memory High",
+          "conditions": [
+            {
+              "evaluator": { "params": [2e+08], "type": "gt" },
+              "operator": { "type": "and" },
+              "query": { "params": ["A"] },
+              "reducer": { "params": [], "type": "avg" },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "1m",
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Memory usage is high"
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Active Threads",
+        "targets": [
+          { "expr": "jvm_threads_live_threads", "legendFormat": "Threads", "refId": "A" }
+        ],
+        "alert": {
+          "name": "Threads High",
+          "conditions": [
+            {
+              "evaluator": { "params": [100], "type": "gt" },
+              "operator": { "type": "and" },
+              "query": { "params": ["A"] },
+              "reducer": { "params": [], "type": "avg" },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "1m",
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Thread count is high"
+        }
+      },
+      {
+        "type": "graph",
+        "title": "HTTP Requests/sec",
+        "targets": [
+          { "expr": "rate(http_server_requests_seconds_count[1m])", "legendFormat": "HTTP req/s", "refId": "A" }
+        ],
+        "alert": {
+          "name": "HTTP Requests High",
+          "conditions": [
+            {
+              "evaluator": { "params": [50], "type": "gt" },
+              "operator": { "type": "and" },
+              "query": { "params": ["A"] },
+              "reducer": { "params": [], "type": "avg" },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "1m",
+          "frequency": "1m",
+          "handler": 1,
+          "message": "HTTP request rate is high"
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}
