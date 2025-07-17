@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
 
   app:
-    image: amir015/groupe12alinfo-app:1.4.1
+    image: ahmedmenssi624/groupe12alinfo-app:1.4.1
     depends_on:
       - db
     ports:

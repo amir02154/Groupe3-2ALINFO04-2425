@@ -1,0 +1,42 @@
+{
+    "dashboard": {
+      "id": null,
+      "uid": null,
+      "title": "Alertes Prometheus",
+      "tags": ["alert"],
+      "timezone": "browser",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "CPU Usage",
+          "targets": [
+            {
+              "expr": "process_cpu_seconds_total",
+              "legendFormat": "CPU",
+              "refId": "A"
+            }
+          ],
+          "alert": {
+            "name": "CPU High",
+            "conditions": [
+              {
+                "evaluator": { "params": [0.5], "type": "gt" },
+                "operator": { "type": "and" },
+                "query": { "params": ["A"] },
+                "reducer": { "params": [], "type": "avg" },
+                "type": "query"
+              }
+            ],
+            "executionErrorState": "alerting",
+            "for": "1m",
+            "frequency": "1m",
+            "handler": 1,
+            "message": "CPU usage is high"
+          }
+        }
+      ],
+      "schemaVersion": 26,
+      "version": 0
+    },
+    "overwrite": true
+  }
