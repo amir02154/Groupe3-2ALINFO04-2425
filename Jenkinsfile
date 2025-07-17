@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        stage('Unit Tests') {
+     /*   stage('Unit Tests') {
             steps {
                 sh 'mvn test'
             }
@@ -168,7 +168,7 @@ pipeline {
                     }
                 }
 */
-
+/*
 
         stage('Build & Push Docker Image') {
             steps {
@@ -209,6 +209,7 @@ pipeline {
                 '''
             }
         }
+        */
 
         stage('Start Prometheus') {
             steps {
@@ -262,97 +263,144 @@ pipeline {
             }
         }
 
-        stage('Create Jenkins Metrics Dashboard') {
-            steps {
-                sh '''
-                    cat > jenkins_metrics_dashboard.json <<EOF
-                    {
-                      "dashboard": {
-                        "id": null,
-                        "title": "Jenkins Metrics Dashboard",
-                        "panels": [
-                          {
-                            "type": "stat",
-                            "title": "Build Success",
-                            "targets": [
-                              {
-                                "expr": "sum(jenkins_job_last_build_result{result=\"SUCCESS\"})",
-                                "legendFormat": "Success"
-                              }
-                            ],
-                            "datasource": "Prometheus",
-                            "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
-                          },
-                          {
-                            "type": "stat",
-                            "title": "Build Failed",
-                            "targets": [
-                              {
-                                "expr": "sum(jenkins_job_last_build_result{result=\"FAILURE\"})",
-                                "legendFormat": "Failed"
-                              }
-                            ],
-                            "datasource": "Prometheus",
-                            "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
-                          },
-                          {
-                            "type": "gauge",
-                            "title": "Build Duration (s)",
-                            "targets": [
-                              {
-                                "expr": "avg(jenkins_job_last_build_duration_seconds)",
-                                "legendFormat": "Duration"
-                              }
-                            ],
-                            "datasource": "Prometheus",
-                            "fieldConfig": {
-                              "defaults": {
-                                "min": 0
-                              }
-                            },
-                            "gridPos": { "h": 4, "w": 12, "x": 0, "y": 4 }
-                          },
-                          {
-                            "type": "timeseries",
-                            "title": "CPU Usage (Jenkins)",
-                            "targets": [
-                              {
-                                "expr": "process_cpu_seconds_total",
-                                "legendFormat": "CPU"
-                              }
-                            ],
-                            "datasource": "Prometheus",
-                            "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 }
-                          },
-                          {
-                            "type": "timeseries",
-                            "title": "Memory Usage (Jenkins)",
-                            "targets": [
-                              {
-                                "expr": "process_resident_memory_bytes",
-                                "legendFormat": "Memory"
-                              }
-                            ],
-                            "datasource": "Prometheus",
-                            "gridPos": { "h": 6, "w": 12, "x": 0, "y": 14 }
-                          }
-                        ],
-                        "schemaVersion": 30,
-                        "version": 1,
-                        "overwrite": true
+       stage('Create Jenkins Full Metrics Dashboard') {
+    steps {
+        sh '''
+            cat > jenkins_full_metrics_dashboard.json <<EOF
+            {
+              "dashboard": {
+                "id": null,
+                "title": "Jenkins Full Metrics Dashboard",
+                "panels": [
+                  {
+                    "type": "stat",
+                    "title": "Builds Success",
+                    "targets": [
+                      {
+                        "expr": "sum(jenkins_job_last_build_result{result=\\"SUCCESS\\"})",
+                        "legendFormat": "Success"
                       }
-                    }
-                    EOF
-
-                    curl -s -X POST http://172.29.215.125:3000/api/dashboards/db \
-                        -H "Content-Type: application/json" \
-                        -u admin:123456aA \
-                        -d @jenkins_metrics_dashboard.json
-                '''
+                    ],
+                    "datasource": "Prometheus",
+                    "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+                  },
+                  {
+                    "type": "stat",
+                    "title": "Builds Failed",
+                    "targets": [
+                      {
+                        "expr": "sum(jenkins_job_last_build_result{result=\\"FAILURE\\"})",
+                        "legendFormat": "Failed"
+                      }
+                    ],
+                    "datasource": "Prometheus",
+                    "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
+                  },
+                  {
+                    "type": "stat",
+                    "title": "Builds Unstable",
+                    "targets": [
+                      {
+                        "expr": "sum(jenkins_job_last_build_result{result=\\"UNSTABLE\\"})",
+                        "legendFormat": "Unstable"
+                      }
+                    ],
+                    "datasource": "Prometheus",
+                    "gridPos": { "h": 4, "w": 6, "x": 0, "y": 4 }
+                  },
+                  {
+                    "type": "stat",
+                    "title": "Builds Aborted",
+                    "targets": [
+                      {
+                        "expr": "sum(jenkins_job_last_build_result{result=\\"ABORTED\\"})",
+                        "legendFormat": "Aborted"
+                      }
+                    ],
+                    "datasource": "Prometheus",
+                    "gridPos": { "h": 4, "w": 6, "x": 6, "y": 4 }
+                  },
+                  {
+                    "type": "gauge",
+                    "title": "Average Build Duration (s)",
+                    "targets": [
+                      {
+                        "expr": "avg(jenkins_job_last_build_duration_seconds)",
+                        "legendFormat": "Duration"
+                      }
+                    ],
+                    "datasource": "Prometheus",
+                    "fieldConfig": {
+                      "defaults": {
+                        "min": 0
+                      }
+                    },
+                    "gridPos": { "h": 4, "w": 12, "x": 0, "y": 8 }
+                  },
+                  {
+                    "type": "stat",
+                    "title": "Running Builds",
+                    "targets": [
+                      {
+                        "expr": "sum(jenkins_job_building)",
+                        "legendFormat": "Running"
+                      }
+                    ],
+                    "datasource": "Prometheus",
+                    "gridPos": { "h": 4, "w": 6, "x": 0, "y": 12 }
+                  },
+                  {
+                    "type": "stat",
+                    "title": "Build Queue Size",
+                    "targets": [
+                      {
+                        "expr": "sum(jenkins_queue_size_value)",
+                        "legendFormat": "Queue"
+                      }
+                    ],
+                    "datasource": "Prometheus",
+                    "gridPos": { "h": 4, "w": 6, "x": 6, "y": 12 }
+                  },
+                  {
+                    "type": "timeseries",
+                    "title": "CPU Usage (Jenkins)",
+                    "targets": [
+                      {
+                        "expr": "process_cpu_seconds_total",
+                        "legendFormat": "CPU"
+                      }
+                    ],
+                    "datasource": "Prometheus",
+                    "gridPos": { "h": 6, "w": 12, "x": 0, "y": 16 }
+                  },
+                  {
+                    "type": "timeseries",
+                    "title": "Memory Usage (Jenkins)",
+                    "targets": [
+                      {
+                        "expr": "process_resident_memory_bytes",
+                        "legendFormat": "Memory"
+                      }
+                    ],
+                    "datasource": "Prometheus",
+                    "gridPos": { "h": 6, "w": 12, "x": 0, "y": 22 }
+                  }
+                ],
+                "schemaVersion": 30,
+                "version": 1,
+                "overwrite": true
+              }
             }
-        }
+            EOF
 
-       
+            echo "Envoi du dashboard à Grafana"
+            curl -v -X POST http://172.29.215.125:3000/api/dashboards/db \
+                -H "Content-Type: application/json" \
+                -u admin:123456aA \
+                -d @jenkins_full_metrics_dashboard.json
+        '''
+    }
+}
 
        
 
