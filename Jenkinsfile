@@ -263,81 +263,48 @@ pipeline {
             }
         }
 
-   stage('Create Grafana Dashboard Programmatically') {
+ stage('Create Simple Test Dashboard Grafana') {
     steps {
         sh '''
             echo "🛠️ Création du dashboard personnalisé Jenkins/Grafana..."
 
-            cat <<EOF > grafana_dashboard_payload.json
+            cat > grafana_dashboard_payload.json <<EOF
             {
               "dashboard": {
                 "id": null,
-                "uid": "jenkins-metrics-dashboard",
-                "title": "Jenkins Custom Dashboard",
-                "tags": ["jenkins", "custom"],
+                "uid": "jenkins-test",
+                "title": "Test Dashboard Jenkins",
                 "timezone": "browser",
+                "schemaVersion": 30,
+                "version": 1,
+                "overwrite": true,
                 "panels": [
                   {
                     "type": "stat",
-                    "title": "✅ Builds Réussis",
+                    "title": "Example Stat Panel",
                     "datasource": "Prometheus",
                     "targets": [
                       {
-                        "expr": "sum(jenkins_job_last_build_result{result=\"SUCCESS\"})",
-                        "legendFormat": "success"
+                        "expr": "up",
+                        "legendFormat": "UP"
                       }
                     ],
-                    "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 }
-                  },
-                  {
-                    "type": "stat",
-                    "title": "❌ Builds Échoués",
-                    "datasource": "Prometheus",
-                    "targets": [
-                      {
-                        "expr": "sum(jenkins_job_last_build_result{result=\"FAILURE\"})",
-                        "legendFormat": "failed"
-                      }
-                    ],
-                    "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 }
-                  },
-                  {
-                    "type": "timeseries",
-                    "title": "🧠 Mémoire utilisée (node exporter)",
-                    "datasource": "Prometheus",
-                    "targets": [
-                      {
-                        "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / 1024 / 1024",
-                        "legendFormat": "Mémoire utilisée (MB)"
-                      }
-                    ],
-                    "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 }
-                  },
-                  {
-                    "type": "timeseries",
-                    "title": "⚙️ Utilisation CPU (node exporter)",
-                    "datasource": "Prometheus",
-                    "targets": [
-                      {
-                        "expr": "100 - (avg by (instance)(rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
-                        "legendFormat": "CPU Util (%)"
-                      }
-                    ],
-                    "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 }
+                    "gridPos": { "x": 0, "y": 0, "w": 12, "h": 4 }
                   }
-                ],
-                "schemaVersion": 36,
-                "version": 1,
-                "refresh": "30s"
+                ]
               },
               "overwrite": true
             }
-EOF
+            EOF
 
-            curl -s -X POST http://172.29.215.125:3000/api/dashboards/db \
-                -H "Content-Type: application/json" \
-                -u admin:123456aA \
-                -d @grafana_dashboard_payload.json
+            echo "--- Payload Grafana ---"
+            cat grafana_dashboard_payload.json
+
+            echo "--- Envoi vers Grafana ---"
+            curl -v -X POST http://172.29.215.125:3000/api/dashboards/db \
+              -H "Content-Type: application/json" \
+              -u admin:123456aA \
+              -d @grafana_dashboard_payload.json
         '''
     }
 }
