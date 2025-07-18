@@ -157,6 +157,20 @@ pipeline {
             }
         }
 */
+
+stage('Performance Test with JMeter') {
+            steps {
+                echo '🚀 Exécution des tests de performance JMeter...'
+                sh '''
+                    rm -rf jmeter/report
+                    rm -f jmeter/results.jtl
+                    mkdir -p jmeter/report
+                    /opt/jmeter/bin/jmeter -n -t jmeter/test_plan.jmx -l jmeter/results.jtl -e -o jmeter/report
+                    tail -n 20 jmeter/results.jtl || true
+                '''
+            }
+        }
+
         stage('Package') {
             steps {
                 sh 'mvn package -DskipTests'
@@ -356,6 +370,15 @@ pipeline {
             archiveArtifacts artifacts: 'jmeter/results.jtl', allowEmptyArchive: true
             archiveArtifacts artifacts: 'jmeter/report/**', allowEmptyArchive: true
 
+            publishHTML(target: [
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'jmeter/report',
+                reportFiles: 'index.html',
+                reportName: 'JMeter Performance Report'
+            ])
+
             jacoco execPattern: '**/target/jacoco.exec'
 
             script {
@@ -381,3 +404,4 @@ pipeline {
         }
     }
 }
+
