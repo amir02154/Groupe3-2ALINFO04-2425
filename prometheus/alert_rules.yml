@@ -59,4 +59,16 @@ groups:
           application: foyer
         annotations:
           summary: "Database connection pool usage high"
-          description: "Database connection pool usage is higher than 80% for more than 2 minutes" 
+          description: "Database connection pool usage is higher than 80% for more than 2 minutes"
+
+  - name: jenkins_alerts
+    rules:
+      - alert: JenkinsHighMemoryUsage
+        expr: vm_memory_total_used_window_1h{instance="172.29.215.125:8080", job="jenkins"} > 314572800
+        for: 1m
+        labels:
+          severity: warning
+          application: jenkins
+        annotations:
+          summary: "Jenkins memory usage high"
+          description: "Jenkins instance {{ $labels.instance }} has high memory usage: {{ $value }} bytes (>300 MB)" 

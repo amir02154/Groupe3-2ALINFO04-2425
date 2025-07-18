@@ -156,19 +156,32 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Package') {
             steps {
                 sh 'mvn package -DskipTests'
             }
         }
-       /* stage('Deploy to Nexus') {
-                    steps {
-                        sh 'mvn deploy -DskipTests'
-                    }
-                }
-*/
-/*
+        stage('Deploy to Nexus') {
+            steps {
+                sh 'mvn deploy -DskipTests'
+            }
+        }
+
+        stage('Download Artifact from Nexus') {
+            steps {
+                sh '''
+                    ARTIFACT_VERSION=1.4.1-SNAPSHOT
+                    ARTIFACT_ID=Groupe12Alinfo42425
+                    GROUP_ID=tn.esprit.DevOps
+                    REPO=maven-snapshots
+                    ARTIFACT_NAME=${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar
+                    ARTIFACT_PATH=$(echo $GROUP_ID | tr '.' '/')/$ARTIFACT_ID/$ARTIFACT_VERSION/$ARTIFACT_NAME
+                    NEXUS_URL=http://172.29.215.125:8081/repository/$REPO/$ARTIFACT_PATH
+                    curl -u admin:123456aA -o $ARTIFACT_NAME $NEXUS_URL
+                '''
+            }
+        }
 
         stage('Build & Push Docker Image') {
             steps {
@@ -177,7 +190,7 @@ pipeline {
                         usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
                     ]) {
                         sh '''
-                            docker build -t "$DOCKER_USER/groupe12alinfo-app:1.4.1" .
+                            docker build -t "$DOCKER_USER/groupe12alinfo-app:1.4.1" --build-arg JAR_FILE=Groupe12Alinfo42425-1.4.1-SNAPSHOT.jar .
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                             docker push "$DOCKER_USER/groupe12alinfo-app:1.4.1"
                         '''
@@ -209,7 +222,7 @@ pipeline {
                 '''
             }
         }
-        */
+        
 
         stage('Start Prometheus') {
             steps {
