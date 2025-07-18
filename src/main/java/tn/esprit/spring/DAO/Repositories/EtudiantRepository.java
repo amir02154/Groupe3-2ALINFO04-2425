@@ -8,6 +8,7 @@ import tn.esprit.spring.DAO.Entities.Etudiant;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface EtudiantRepository extends JpaRepository<Etudiant, Long> {
 
@@ -65,6 +66,8 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, Long> {
 
     //select * from Etudiant where cin=...
     Etudiant findByCin(long cin);
+    Optional<Etudiant> findFirstByCin(long cin);
+
 
     // select * from Etudiant where nomEt like ...
     List<Etudiant> findByNomEtLike(String nom);

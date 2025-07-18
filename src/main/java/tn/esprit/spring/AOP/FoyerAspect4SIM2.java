@@ -3,14 +3,10 @@ package tn.esprit.spring.AOP;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-<<<<<<< HEAD
-import org.aspectj.lang.annotation.*;
-=======
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
->>>>>>> 2a5493e616567e2fa2bf40fd8ed126611f7d04c1
 import org.springframework.stereotype.Component;
 
 @Aspect

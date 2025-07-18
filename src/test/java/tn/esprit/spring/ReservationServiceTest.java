@@ -1,6 +1,8 @@
 package tn.esprit.spring;
 
-import org.junit.jupiter.api.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +29,9 @@ public class ReservationServiceTest {
 
     @Mock
     private EtudiantRepository etudiantRepository;
+
+    @Mock
+    private EntityManager entityManager;
 
     @InjectMocks
     private ReservationService reservationService;
@@ -50,14 +56,23 @@ public class ReservationServiceTest {
                 .cin(cin)
                 .build();
 
+        List<Etudiant> etudiants = new ArrayList<>();
+        etudiants.add(etudiant);
+
+        TypedQuery<Etudiant> mockQuery = mock(TypedQuery.class);
+
+        // Lenient stubbing pour éviter UnnecessaryStubbingException
+        lenient().when(entityManager.createQuery(anyString(), eq(Etudiant.class))).thenReturn(mockQuery);
+        lenient().when(mockQuery.setParameter(eq("cin"), eq(cin))).thenReturn(mockQuery);
+        lenient().when(mockQuery.getResultList()).thenReturn(etudiants);
+
         when(chambreRepository.findByNumeroChambre(numChambre)).thenReturn(chambre);
-        when(etudiantRepository.findByCin(cin)).thenReturn(etudiant);
         when(chambreRepository.countReservationsByIdChambreAndReservationsAnneeUniversitaireBetween(
                 eq(1L), any(LocalDate.class), any(LocalDate.class)
         )).thenReturn(0);
 
         // Simule la sauvegarde de la réservation
-        Mockito.when(reservationRepository.save(Mockito.any(Reservation.class))).thenAnswer(invocation -> {
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> {
             Reservation res = invocation.getArgument(0);
             if (res.getEtudiants() == null) res.setEtudiants(new ArrayList<>());
             return res;
