@@ -165,7 +165,7 @@ pipeline {
                 sh 'mvn package -DskipTests'
             }
         }
-      +/*  stage('Deploy to Nexus') {
+      /*  stage('Deploy to Nexus') {
             steps {
                 sh 'mvn deploy -DskipTests'
             }
