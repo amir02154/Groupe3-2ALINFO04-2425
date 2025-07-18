@@ -90,4 +90,76 @@ public class ReservationServiceTest {
         assertEquals(1, chambre.getReservations().size());
         assertTrue(result.getEtudiants().contains(etudiant));
     }
+
+    @Test
+    void testAnnulerReservation() {
+        Reservation r = new Reservation();
+        r.setIdReservation("res1");
+        r.setEstValide(true);
+        Etudiant e = new Etudiant();
+        e.setCin(123L);
+        r.setEtudiants(List.of(e));
+        Chambre c = new Chambre();
+        c.setReservations(new ArrayList<>(List.of(r)));
+
+        when(reservationRepository.findByEtudiantsCinAndEstValide(123L, true)).thenReturn(r);
+        when(chambreRepository.findByReservationsIdReservation("res1")).thenReturn(c);
+        doNothing().when(reservationRepository).delete(r);
+        when(reservationRepository.save(any())).thenReturn(r);
+        when(chambreRepository.save(any())).thenReturn(c);
+
+        String result = reservationService.annulerReservation(123L);
+        assertTrue(result.contains("annulée"));
+        verify(reservationRepository).delete(r);
+        verify(chambreRepository).save(c);
+    }
+
+    @Test
+    void testGetReservationParAnneeUniversitaire() {
+        when(reservationRepository.countByAnneeUniversitaireBetween(any(), any())).thenReturn(5);
+        long count = reservationService.getReservationParAnneeUniversitaire(LocalDate.now().minusYears(1), LocalDate.now());
+        assertEquals(5L, count);
+    }
+
+    @Test
+    void testAffectReservationAChambre() {
+        Reservation r = new Reservation();
+        r.setIdReservation("res2");
+        Chambre c = new Chambre();
+        c.setReservations(new ArrayList<>());
+        when(reservationRepository.findById("res2")).thenReturn(java.util.Optional.of(r));
+        when(chambreRepository.findById(2L)).thenReturn(java.util.Optional.of(c));
+        when(chambreRepository.save(any())).thenReturn(c);
+
+        reservationService.affectReservationAChambre("res2", 2L);
+        assertTrue(c.getReservations().contains(r));
+        verify(chambreRepository).save(c);
+    }
+
+    @Test
+    void testDeaffectReservationAChambre() {
+        Reservation r = new Reservation();
+        r.setIdReservation("res3");
+        Chambre c = new Chambre();
+        c.setReservations(new ArrayList<>(List.of(r)));
+        when(reservationRepository.findById("res3")).thenReturn(java.util.Optional.of(r));
+        when(chambreRepository.findById(3L)).thenReturn(java.util.Optional.of(c));
+        when(chambreRepository.save(any())).thenReturn(c);
+
+        reservationService.deaffectReservationAChambre("res3", 3L);
+        assertFalse(c.getReservations().contains(r));
+        verify(chambreRepository).save(c);
+    }
+
+    @Test
+    void testAnnulerReservations() {
+        Reservation r = new Reservation();
+        r.setIdReservation("res4");
+        r.setEstValide(true);
+        when(reservationRepository.findByEstValideAndAnneeUniversitaireBetween(eq(true), any(), any())).thenReturn(List.of(r));
+        when(reservationRepository.save(any())).thenReturn(r);
+        reservationService.annulerReservations();
+        verify(reservationRepository).save(r);
+        assertFalse(r.isEstValide());
+    }
 }
