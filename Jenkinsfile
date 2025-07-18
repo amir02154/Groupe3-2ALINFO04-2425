@@ -281,22 +281,33 @@ pipeline {
         stage('Import Dashboard Grafana') {
             steps {
                 sh '''
-                    curl -s https://grafana.com/api/dashboards/9964/revisions/1/download -o node_exporter_dashboard.json
-                    jq -s '{
-                        dashboard: .[0],
-                        inputs: [{
-                            name: "DS_PROMETHEUS",
-                            type: "datasource",
-                            pluginId: "prometheus",
-                            value: "Prometheus"
-                        }],
-                        overwrite: true
-                    }' node_exporter_dashboard.json > payload_dashboard_9964.json
+                    DASHBOARD_UID="9964"
+                    GRAFANA_URL="http://172.29.215.125:3000"
+                    GRAFANA_USER="admin"
+                    GRAFANA_PASS="123456aA"
 
-                    curl -s -X POST http://172.29.215.125:3000/api/dashboards/import \
-                        -H "Content-Type: application/json" \
-                        -u admin:123456aA \
-                        -d @payload_dashboard_9964.json
+                    EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
+
+                    if [ "$EXISTS" = "$DASHBOARD_UID" ]; then
+                        echo "Dashboard déjà existé"
+                    else
+                        curl -s https://grafana.com/api/dashboards/9964/revisions/1/download -o node_exporter_dashboard.json
+                        jq -s '{
+                            dashboard: .[0],
+                            inputs: [{
+                                name: "DS_PROMETHEUS",
+                                type: "datasource",
+                                pluginId: "prometheus",
+                                value: "Prometheus"
+                            }],
+                            overwrite: true
+                        }' node_exporter_dashboard.json > payload_dashboard_9964.json
+
+                        curl -s -X POST $GRAFANA_URL/api/dashboards/import \
+                            -H "Content-Type: application/json" \
+                            -u $GRAFANA_USER:$GRAFANA_PASS \
+                            -d @payload_dashboard_9964.json
+                    fi
                 '''
             }
         }
@@ -304,28 +315,41 @@ pipeline {
         stage('Import Jenkins Metrics Dashboard') {
             steps {
                 sh '''
+                    GRAFANA_URL="http://172.29.215.125:3000"
+                    GRAFANA_USER="admin"
+                    GRAFANA_PASS="123456aA"
+
                     cp monitoring/grafana-dashboard-jenkins.json jenkins_metrics_dashboard.json
 
-                    jq -s '{
-                        dashboard: .[0],
-                        inputs: [{
-                            name: "DS_PROMETHEUS",
-                            type: "datasource",
-                            pluginId: "prometheus",
-                            value: "Prometheus"
-                        }],
-                        overwrite: true
-                    }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
+                    # Extraire l'UID du dashboard Jenkins Metrics
+                    DASHBOARD_UID=$(jq -r '.uid' jenkins_metrics_dashboard.json)
 
-                    curl -s -X POST http://172.29.215.125:3000/api/dashboards/import \
-                        -H "Content-Type: application/json" \
-                        -u admin:123456aA \
-                        -d @payload_jenkins_dashboard_jenkins.json
+                    EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
+
+                    if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
+                        echo "Dashboard déjà existé"
+                    else
+                        jq -s '{
+                            dashboard: .[0],
+                            inputs: [{
+                                name: "DS_PROMETHEUS",
+                                type: "datasource",
+                                pluginId: "prometheus",
+                                value: "Prometheus"
+                            }],
+                            overwrite: true
+                        }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
+
+                        curl -s -X POST $GRAFANA_URL/api/dashboards/import \
+                            -H "Content-Type: application/json" \
+                            -u $GRAFANA_USER:$GRAFANA_PASS \
+                            -d @payload_jenkins_dashboard_jenkins.json
+                    fi
                 '''
             }
         }
     }
-//testing
+
 
     post {
         always {
