@@ -91,7 +91,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -156,27 +156,16 @@ pipeline {
                 }
             }
         }
-*/
 
-stage('Performance Test with JMeter') {
-            steps {
-                echo '🚀 Exécution des tests de performance JMeter...'
-                sh '''
-                    rm -rf jmeter/report
-                    rm -f jmeter/results.jtl
-                    mkdir -p jmeter/report
-                    /opt/jmeter/bin/jmeter -n -t jmeter/test_plan.jmx -l jmeter/results.jtl -e -o jmeter/report
-                    tail -n 20 jmeter/results.jtl || true
-                '''
-            }
-        }
+
+        
 
         stage('Package') {
             steps {
                 sh 'mvn package -DskipTests'
             }
         }
-        stage('Deploy to Nexus') {
+      +/*  stage('Deploy to Nexus') {
             steps {
                 sh 'mvn deploy -DskipTests'
             }
@@ -195,7 +184,7 @@ stage('Performance Test with JMeter') {
                     curl -u admin:123456aA -o $ARTIFACT_NAME $NEXUS_URL
                 '''
             }
-        }
+        }*/
 
         stage('Build & Push Docker Image') {
             steps {
@@ -233,6 +222,74 @@ stage('Performance Test with JMeter') {
                 sh '''
                     docker compose down || true
                     docker compose up -d
+                '''
+            }
+        }
+        stage('Performance Test with JMeter') {
+            steps {
+                echo '🚀 Exécution des tests de performance JMeter...'
+                sh '''
+                    # Vérifier si le fichier de test existe
+                    if [ ! -f "jmeter/test_plan.jmx" ]; then
+                        echo "❌ Fichier de test JMeter non trouvé: jmeter/test_plan.jmx"
+                        exit 1
+                    fi
+                    
+                    # Vérifier que l'application Spring Boot est démarrée
+                    echo "🔍 Vérification que l'application Spring Boot est accessible..."
+                    MAX_ATTEMPTS=30
+                    ATTEMPT=0
+                    
+                    while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+                        if curl -s http://localhost:8086/actuator/health > /dev/null 2>&1; then
+                            echo "✅ Application Spring Boot accessible sur http://localhost:8086"
+                            break
+                        else
+                            ATTEMPT=$((ATTEMPT + 1))
+                            echo "⏳ Tentative $ATTEMPT/$MAX_ATTEMPTS - Application non accessible, attente..."
+                            sleep 2
+                        fi
+                    done
+                    
+                    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+                        echo "❌ Application Spring Boot non accessible après $MAX_ATTEMPTS tentatives"
+                        echo "💡 Assurez-vous que l'application est démarrée sur le port 8086"
+                        exit 1
+                    fi
+                    
+                    rm -rf jmeter/report
+                    rm -f jmeter/results.jtl
+                    mkdir -p jmeter/report
+                    
+                    # Essayer différents chemins JMeter
+                    JMETER_CMD=""
+                    if command -v jmeter &> /dev/null; then
+                        JMETER_CMD="jmeter"
+                    elif [ -f "/opt/jmeter/bin/jmeter" ]; then
+                        JMETER_CMD="/opt/jmeter/bin/jmeter"
+                    elif [ -f "/usr/local/bin/jmeter" ]; then
+                        JMETER_CMD="/usr/local/bin/jmeter"
+                    else
+                        echo "❌ JMeter non trouvé. Installation requise."
+                        exit 1
+                    fi
+                    
+                    echo "✅ Utilisation de JMeter: $JMETER_CMD"
+                    echo "🎯 Test des endpoints: /actuator/health, /api/foyers, /api/etudiants"
+                    $JMETER_CMD -n -t jmeter/test_plan.jmx -l jmeter/results.jtl -e -o jmeter/report
+                    
+                    # Vérifier si le rapport a été généré
+                    if [ -f "jmeter/report/index.html" ]; then
+                        echo "✅ Rapport JMeter généré avec succès"
+                        echo "📊 Statistiques des tests:"
+                        ls -la jmeter/report/
+                        echo "📈 Graphiques disponibles dans le rapport HTML"
+                    else
+                        echo "❌ Échec de génération du rapport JMeter"
+                        ls -la jmeter/
+                    fi
+                    
+                    tail -n 20 jmeter/results.jtl || true
                 '''
             }
         }
@@ -300,12 +357,32 @@ stage('Performance Test with JMeter') {
                     GRAFANA_USER="admin"
                     GRAFANA_PASS="123456aA"
 
+                    # Vérifier si jq est installé
+                    if ! command -v jq &> /dev/null; then
+                        echo "📦 Installation de jq..."
+                        if command -v apt-get &> /dev/null; then
+                            sudo apt-get update && sudo apt-get install -y jq
+                        elif command -v yum &> /dev/null; then
+                            sudo yum install -y jq
+                        elif command -v dnf &> /dev/null; then
+                            sudo dnf install -y jq
+                        else
+                            echo "❌ Impossible d'installer jq automatiquement"
+                            exit 1
+                        fi
+                    fi
+
+                    echo "✅ jq est disponible: $(jq --version)"
+
                     EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
 
                     if [ "$EXISTS" = "$DASHBOARD_UID" ]; then
                         echo "Dashboard déjà existé"
                     else
+                        echo "📥 Téléchargement du dashboard depuis Grafana.com..."
                         curl -s https://grafana.com/api/dashboards/9964/revisions/1/download -o node_exporter_dashboard.json
+                        
+                        echo "🔧 Préparation du payload pour l'import..."
                         jq -s '{
                             dashboard: .[0],
                             inputs: [{
@@ -317,10 +394,13 @@ stage('Performance Test with JMeter') {
                             overwrite: true
                         }' node_exporter_dashboard.json > payload_dashboard_9964.json
 
+                        echo "📤 Import du dashboard dans Grafana..."
                         curl -s -X POST $GRAFANA_URL/api/dashboards/import \
                             -H "Content-Type: application/json" \
                             -u $GRAFANA_USER:$GRAFANA_PASS \
                             -d @payload_dashboard_9964.json
+                        
+                        echo "✅ Dashboard importé avec succès"
                     fi
                 '''
             }
@@ -333,6 +413,23 @@ stage('Performance Test with JMeter') {
                     GRAFANA_USER="admin"
                     GRAFANA_PASS="123456aA"
 
+                    # Vérifier si jq est installé
+                    if ! command -v jq &> /dev/null; then
+                        echo "📦 Installation de jq..."
+                        if command -v apt-get &> /dev/null; then
+                            sudo apt-get update && sudo apt-get install -y jq
+                        elif command -v yum &> /dev/null; then
+                            sudo yum install -y jq
+                        elif command -v dnf &> /dev/null; then
+                            sudo dnf install -y jq
+                        else
+                            echo "❌ Impossible d'installer jq automatiquement"
+                            exit 1
+                        fi
+                    fi
+
+                    echo "✅ jq est disponible: $(jq --version)"
+
                     cp monitoring/grafana-dashboard-jenkins.json jenkins_metrics_dashboard.json
 
                     # Extraire l'UID du dashboard Jenkins Metrics
@@ -343,6 +440,7 @@ stage('Performance Test with JMeter') {
                     if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
                         echo "Dashboard déjà existé"
                     else
+                        echo "🔧 Préparation du payload pour l'import du dashboard Jenkins..."
                         jq -s '{
                             dashboard: .[0],
                             inputs: [{
@@ -354,10 +452,13 @@ stage('Performance Test with JMeter') {
                             overwrite: true
                         }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
 
+                        echo "📤 Import du dashboard Jenkins dans Grafana..."
                         curl -s -X POST $GRAFANA_URL/api/dashboards/import \
                             -H "Content-Type: application/json" \
                             -u $GRAFANA_USER:$GRAFANA_PASS \
                             -d @payload_jenkins_dashboard_jenkins.json
+                        
+                        echo "✅ Dashboard Jenkins importé avec succès"
                     fi
                 '''
             }
