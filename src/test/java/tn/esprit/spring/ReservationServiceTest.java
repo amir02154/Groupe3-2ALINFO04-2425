@@ -105,7 +105,6 @@ public class ReservationServiceTest {
         when(reservationRepository.findByEtudiantsCinAndEstValide(123L, true)).thenReturn(r);
         when(chambreRepository.findByReservationsIdReservation("res1")).thenReturn(c);
         doNothing().when(reservationRepository).delete(r);
-        when(reservationRepository.save(any())).thenReturn(r);
         when(chambreRepository.save(any())).thenReturn(c);
 
         String result = reservationService.annulerReservation(123L);
