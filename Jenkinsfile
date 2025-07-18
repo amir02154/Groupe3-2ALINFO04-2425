@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-     /*   stage('Unit Tests') {
+       stage('Unit Tests') {
             steps {
                 sh 'mvn test'
             }
@@ -45,7 +45,7 @@ pipeline {
                 sh 'mvn verify -Pintegration-tests'
             }
         }
-
+/*
         stage('Performance Test with JMeter') {
             steps {
                 echo '🚀 Exécution des tests de performance JMeter...'
