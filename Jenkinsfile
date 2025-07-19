@@ -341,7 +341,7 @@ pipeline {
             }
         }
 
-        stage('Créer Jenkins Metrics Dashboard') {
+       stage('Créer Jenkins Metrics Dashboard') {
             steps {
                 sh '''
                     GRAFANA_URL="http://172.29.215.125:3000"
@@ -366,49 +366,27 @@ pipeline {
 
                     cp monitoring/grafana-dashboard-jenkins.json jenkins_metrics_dashboard.json
                     DASHBOARD_UID=$(jq -r '.uid' jenkins_metrics_dashboard.json)
-                    echo "🔍 Vérification du dashboard avec UID: $DASHBOARD_UID"
 
-                    # Vérifier si le dashboard existe
-                    RESPONSE=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID")
-                    EXISTS=$(echo "$RESPONSE" | jq -r '.dashboard.uid // empty')
+                    EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
 
                     if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
-                        echo "✅ Dashboard '$DASHBOARD_UID' existe déjà dans Grafana"
-                        echo "🔄 Mise à jour du dashboard existant..."
+                        echo "Dashboard déjà existé"
                     else
-                        echo "🆕 Dashboard '$DASHBOARD_UID' n'existe pas, création..."
-                    fi
+                        jq -s '{
+                            dashboard: .[0],
+                            inputs: [{
+                                name: "DS_PROMETHEUS",
+                                type: "datasource",
+                                pluginId: "prometheus",
+                                value: "Prometheus"
+                            }],
+                            overwrite: true
+                        }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
 
-                    # Préparer le payload avec overwrite: true pour forcer la mise à jour
-                    jq -s '{
-                        dashboard: .[0],
-                        inputs: [{
-                            name: "DS_PROMETHEUS",
-                            type: "datasource",
-                            pluginId: "prometheus",
-                            value: "Prometheus"
-                        }],
-                        overwrite: true
-                    }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
-
-                    echo "📤 Import/Mise à jour du dashboard..."
-                    IMPORT_RESPONSE=$(curl -s -X POST $GRAFANA_URL/api/dashboards/import \
-                        -H "Content-Type: application/json" \
-                        -u $GRAFANA_USER:$GRAFANA_PASS \
-                        -d @payload_jenkins_dashboard_jenkins.json)
-
-                    if echo "$IMPORT_RESPONSE" | jq -e '.uid' > /dev/null 2>&1; then
-                        echo "✅ Dashboard importé/mis à jour avec succès"
-                        echo "📊 URL du dashboard: $GRAFANA_URL/d/$DASHBOARD_UID"
-                    else
-                        echo "❌ Erreur lors de l'import du dashboard"
-                        echo "📋 Réponse: $IMPORT_RESPONSE"
-                        # Ne pas faire échouer le pipeline si le dashboard existe déjà
-                        if echo "$IMPORT_RESPONSE" | grep -q "already exists"; then
-                            echo "ℹ️ Dashboard existe déjà, c'est normal"
-                        else
-                            exit 1
-                        fi
+                        curl -s -X POST $GRAFANA_URL/api/dashboards/import \
+                            -H "Content-Type: application/json" \
+                            -u $GRAFANA_USER:$GRAFANA_PASS \
+                            -d @payload_jenkins_dashboard_jenkins.json
                     fi
                 '''
             }
@@ -437,57 +415,36 @@ pipeline {
                     fi
 
                     echo "✅ jq est disponible: $(jq --version)"
-                    echo "🔍 Vérification du dashboard avec UID: $DASHBOARD_UID"
 
-                    # Vérifier si le dashboard existe
-                    RESPONSE=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID")
-                    EXISTS=$(echo "$RESPONSE" | jq -r '.dashboard.uid // empty')
+                    EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
 
-                    if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
-                        echo "✅ Dashboard '$DASHBOARD_UID' existe déjà dans Grafana"
-                        echo "🔄 Mise à jour du dashboard existant..."
+                    if [ "$EXISTS" = "$DASHBOARD_UID" ]; then
+                        echo "Dashboard déjà existé"
                     else
-                        echo "🆕 Dashboard '$DASHBOARD_UID' n'existe pas, création..."
                         curl -s https://grafana.com/api/dashboards/9964/revisions/1/download -o node_exporter_dashboard.json
-                    fi
 
-                    # Préparer le payload avec overwrite: true pour forcer la mise à jour
-                    jq -s '{
-                        dashboard: .[0],
-                        inputs: [{
-                            name: "DS_PROMETHEUS",
-                            type: "datasource",
-                            pluginId: "prometheus",
-                            value: "Prometheus"
-                        }],
-                        overwrite: true
-                    }' node_exporter_dashboard.json > payload_dashboard_9964.json
+                        jq -s '{
+                            dashboard: .[0],
+                            inputs: [{
+                                name: "DS_PROMETHEUS",
+                                type: "datasource",
+                                pluginId: "prometheus",
+                                value: "Prometheus"
+                            }],
+                            overwrite: true
+                        }' node_exporter_dashboard.json > payload_dashboard_9964.json
 
-                    echo "📤 Import/Mise à jour du dashboard..."
-                    IMPORT_RESPONSE=$(curl -s -X POST $GRAFANA_URL/api/dashboards/import \
-                        -H "Content-Type: application/json" \
-                        -u $GRAFANA_USER:$GRAFANA_PASS \
-                        -d @payload_dashboard_9964.json)
-
-                    if echo "$IMPORT_RESPONSE" | jq -e '.uid' > /dev/null 2>&1; then
-                        echo "✅ Dashboard importé/mis à jour avec succès"
-                        echo "📊 URL du dashboard: $GRAFANA_URL/d/$DASHBOARD_UID"
-                    else
-                        echo "❌ Erreur lors de l'import du dashboard"
-                        echo "📋 Réponse: $IMPORT_RESPONSE"
-                        # Ne pas faire échouer le pipeline si le dashboard existe déjà
-                        if echo "$IMPORT_RESPONSE" | grep -q "already exists"; then
-                            echo "ℹ️ Dashboard existe déjà, c'est normal"
-                        else
-                            exit 1
-                        fi
+                        curl -s -X POST $GRAFANA_URL/api/dashboards/import \
+                            -H "Content-Type: application/json" \
+                            -u $GRAFANA_USER:$GRAFANA_PASS \
+                            -d @payload_dashboard_9964.json
                     fi
                 '''
             }
         }
-
-
     }
+
+
 
     post {
         always {
