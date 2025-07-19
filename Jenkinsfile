@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     tools {
+ 
         maven 'M2_HOME'
         jdk 'JAVA_HOME'
     }
@@ -20,8 +21,6 @@ pipeline {
             }
         }
 
-
-
         stage('Clean') {
             steps {
                 sh 'mvn clean'
@@ -34,7 +33,7 @@ pipeline {
             }
         }
 
-     /*  stage('Unit Tests') {
+        /* stage('Unit Tests') {
             steps {
                 sh 'mvn test'
             }
@@ -44,7 +43,7 @@ pipeline {
             steps {
                 sh 'mvn verify -Pintegration-tests'
             }
-        }*/
+        } */
 
         stage('Performance Test with JMeter') {
             steps {
@@ -92,7 +91,7 @@ pipeline {
             }
         }
 
-      /*  stage('SonarQube Analysis') {
+        /* stage('SonarQube Analysis') {
             steps {
                 script {
                     withSonarQubeEnv('SonarQubeServer') {
@@ -134,7 +133,6 @@ pipeline {
                             echo "⚠️ Timeout ou erreur dans la récupération du Quality Gate"
                             echo err.toString()
 
-
                             withCredentials([
                                 string(credentialsId: 'TELEGRAM_BOT_TOKEN', variable: 'BOT_TOKEN'),
                                 string(credentialsId: 'TELEGRAM_CHAT_ID', variable: 'CHAT_ID')
@@ -155,17 +153,15 @@ pipeline {
                     }
                 }
             }
-        }
-
-
-        */
+        } */
 
         stage('Package') {
             steps {
                 sh 'mvn package -DskipTests'
             }
         }
-      /*  stage('Deploy to Nexus') {
+
+        /* stage('Deploy to Nexus') {
             steps {
                 sh 'mvn deploy -DskipTests'
             }
@@ -184,9 +180,9 @@ pipeline {
                     curl -u admin:123456aA -o $ARTIFACT_NAME $NEXUS_URL
                 '''
             }
-        }*/
+        } */
 
-      /*  stage('Build & Push Docker Image') {
+        /* stage('Build & Push Docker Image') {
             steps {
                 script {
                     withCredentials([
@@ -211,8 +207,6 @@ pipeline {
                     docker rm -f foyer2-db-1 || true
                     docker rm -f final-app-1 || true
                     docker rm -f final-db-1 || true
-                    
-
                 '''
             }
         }
@@ -224,97 +218,7 @@ pipeline {
                     docker compose up -d
                 '''
             }
-        }*/
-       /* stage('Performance Test with JMeter') {
-            steps {
-                echo '🚀 Exécution des tests de performance JMeter...'
-                sh '''
-                    # Vérifier si le fichier de test existe
-                    if [ ! -f "jmeter/test_plan.jmx" ]; then
-                        echo "❌ Fichier de test JMeter non trouvé: jmeter/test_plan.jmx"
-                        exit 1
-                    fi
-                    
-                    # Vérifier que l'application Spring Boot est démarrée
-                    echo "🔍 Vérification que l'application Spring Boot est accessible..."
-                    MAX_ATTEMPTS=30
-                    ATTEMPT=0
-                    
-                    while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-                        if curl -s http://localhost:8086/actuator/health > /dev/null 2>&1; then
-                            echo "✅ Application Spring Boot accessible sur http://localhost:8086"
-                            break
-                        else
-                            ATTEMPT=$((ATTEMPT + 1))
-                            echo "⏳ Tentative $ATTEMPT/$MAX_ATTEMPTS - Application non accessible, attente..."
-                            sleep 2
-                        fi
-                    done
-                    
-                    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-                        echo "❌ Application Spring Boot non accessible après $MAX_ATTEMPTS tentatives"
-                        echo "💡 Assurez-vous que l'application est démarrée sur le port 8086"
-                        exit 1
-                    fi
-                    
-                    # Installation de JMeter si nécessaire
-                    echo "🔧 Vérification de l'installation de JMeter..."
-                    if ! command -v jmeter &> /dev/null; then
-                        echo "📦 Installation de JMeter..."
-                        
-                        # Télécharger et installer JMeter
-                        JMETER_VERSION="5.6.3"
-                        JMETER_DIR="/opt/jmeter"
-                        
-                        if [ ! -d "$JMETER_DIR" ]; then
-                            echo "📥 Téléchargement de JMeter $JMETER_VERSION..."
-                            sudo mkdir -p $JMETER_DIR
-                            cd /tmp
-                            wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz
-                            sudo tar -xzf apache-jmeter-$JMETER_VERSION.tgz -C /opt/
-                            sudo mv /opt/apache-jmeter-$JMETER_VERSION $JMETER_DIR
-                            sudo ln -sf $JMETER_DIR/bin/jmeter /usr/local/bin/jmeter
-                            sudo ln -sf $JMETER_DIR/bin/jmeter-server /usr/local/bin/jmeter-server
-                            echo "✅ JMeter installé dans $JMETER_DIR"
-                        fi
-                        
-                        # Vérifier l'installation
-                        if [ -f "$JMETER_DIR/bin/jmeter" ]; then
-                            JMETER_CMD="$JMETER_DIR/bin/jmeter"
-                        else
-                            echo "❌ Échec de l'installation de JMeter"
-                            exit 1
-                        fi
-                    else
-                        JMETER_CMD="jmeter"
-                    fi
-                    
-                    echo "✅ Utilisation de JMeter: $JMETER_CMD"
-                    echo "📊 Version JMeter: $($JMETER_CMD -v 2>&1 | head -1)"
-                    
-                    rm -rf jmeter/report
-                    rm -f jmeter/results.jtl
-                    mkdir -p jmeter/report
-                    
-                    echo "🎯 Test des endpoints: /actuator/health, /api/foyers, /api/etudiants"
-                    $JMETER_CMD -n -t jmeter/test_plan.jmx -l jmeter/results.jtl -e -o jmeter/report
-                    
-                    # Vérifier si le rapport a été généré
-                    if [ -f "jmeter/report/index.html" ]; then
-                        echo "✅ Rapport JMeter généré avec succès"
-                        echo "📊 Statistiques des tests:"
-                        ls -la jmeter/report/
-                        echo "📈 Graphiques disponibles dans le rapport HTML"
-                    else
-                        echo "❌ Échec de génération du rapport JMeter"
-                        ls -la jmeter/
-                    fi
-                    
-                    tail -n 20 jmeter/results.jtl || true
-                '''
-            }
-        }*/
-        
+        } */
 
         stage('Start Prometheus') {
             steps {
@@ -367,14 +271,14 @@ pipeline {
                 }
             }
         }
- stage('Import Jenkins Metrics Dashboard') {
+
+        stage('Import Jenkins Metrics Dashboard') {
             steps {
                 sh '''
                     GRAFANA_URL="http://172.29.215.125:3000"
                     GRAFANA_USER="admin"
                     GRAFANA_PASS="123456aA"
 
-                    # Vérifier si jq est installé
                     if ! command -v jq &> /dev/null; then
                         echo "📦 Installation de jq..."
                         if command -v apt-get &> /dev/null; then
@@ -392,8 +296,6 @@ pipeline {
                     echo "✅ jq est disponible: $(jq --version)"
 
                     cp monitoring/grafana-dashboard-jenkins.json jenkins_metrics_dashboard.json
-
-                    # Extraire l'UID du dashboard Jenkins Metrics
                     DASHBOARD_UID=$(jq -r '.uid' jenkins_metrics_dashboard.json)
 
                     EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
@@ -401,7 +303,6 @@ pipeline {
                     if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
                         echo "Dashboard déjà existé"
                     else
-                        echo "🔧 Préparation du payload pour l'import du dashboard Jenkins..."
                         jq -s '{
                             dashboard: .[0],
                             inputs: [{
@@ -413,19 +314,14 @@ pipeline {
                             overwrite: true
                         }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
 
-                        echo "📤 Import du dashboard Jenkins dans Grafana..."
                         curl -s -X POST $GRAFANA_URL/api/dashboards/import \
                             -H "Content-Type: application/json" \
                             -u $GRAFANA_USER:$GRAFANA_PASS \
                             -d @payload_jenkins_dashboard_jenkins.json
-                        
-                        echo "✅ Dashboard Jenkins importé avec succès"
                     fi
                 '''
             }
         }
-    
-
 
         stage('Import Dashboard Grafana') {
             steps {
@@ -435,7 +331,6 @@ pipeline {
                     GRAFANA_USER="admin"
                     GRAFANA_PASS="123456aA"
 
-                    # Vérifier si jq est installé
                     if ! command -v jq &> /dev/null; then
                         echo "📦 Installation de jq..."
                         if command -v apt-get &> /dev/null; then
@@ -457,10 +352,8 @@ pipeline {
                     if [ "$EXISTS" = "$DASHBOARD_UID" ]; then
                         echo "Dashboard déjà existé"
                     else
-                        echo "📥 Téléchargement du dashboard depuis Grafana.com..."
                         curl -s https://grafana.com/api/dashboards/9964/revisions/1/download -o node_exporter_dashboard.json
-                        
-                        echo "🔧 Préparation du payload pour l'import..."
+
                         jq -s '{
                             dashboard: .[0],
                             inputs: [{
@@ -472,13 +365,10 @@ pipeline {
                             overwrite: true
                         }' node_exporter_dashboard.json > payload_dashboard_9964.json
 
-                        echo "📤 Import du dashboard dans Grafana..."
                         curl -s -X POST $GRAFANA_URL/api/dashboards/import \
                             -H "Content-Type: application/json" \
                             -u $GRAFANA_USER:$GRAFANA_PASS \
                             -d @payload_dashboard_9964.json
-                        
-                        echo "✅ Dashboard importé avec succès"
                     fi
                 '''
             }
@@ -499,9 +389,9 @@ pipeline {
                 reportName: 'JMeter Performance Report'
             ])
 
-            jacoco execPattern: '**/target/jacoco.exec'
-
             script {
+                jacoco execPattern: '**/target/jacoco.exec'
+
                 def status = currentBuild.currentResult
                 def emoji = status == 'SUCCESS' ? '✅' : (status == 'FAILURE' ? '❌' : '⚠️')
                 def message = "${emoji} *Pipeline Jenkins Terminé*%0A"
@@ -523,5 +413,4 @@ pipeline {
             }
         }
     }
-
-
+}
