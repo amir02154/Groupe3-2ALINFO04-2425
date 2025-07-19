@@ -9,7 +9,7 @@ import tn.esprit.spring.Services.Foyer.IFoyerService;
 import java.util.List;
 
 @RestController
-@RequestMapping("foyer")
+@RequestMapping("/api/foyers")
 @AllArgsConstructor
 public class FoyerRestController {
     IFoyerService service;

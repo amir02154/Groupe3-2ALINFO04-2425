@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("reservation")
+@RequestMapping("/api/reservations")
 @AllArgsConstructor
 public class ReservationRestController {
     IReservationService service;

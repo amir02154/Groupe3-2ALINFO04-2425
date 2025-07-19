@@ -48,7 +48,7 @@ class ReservationRestControllerTest {
     void testAddOrUpdate() throws Exception {
         Mockito.when(reservationService.addOrUpdate(any(Reservation.class))).thenReturn(reservation);
 
-        mockMvc.perform(post("/reservation/addOrUpdate")
+        mockMvc.perform(post("/api/reservations/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reservation)))
                 .andExpect(status().isOk())
@@ -59,7 +59,7 @@ class ReservationRestControllerTest {
     void testFindAll() throws Exception {
         Mockito.when(reservationService.findAll()).thenReturn(Arrays.asList(reservation));
 
-        mockMvc.perform(get("/reservation/findAll"))
+        mockMvc.perform(get("/api/reservations/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].idReservation").value("RES001"));
     }
@@ -68,7 +68,7 @@ class ReservationRestControllerTest {
     void testFindById() throws Exception {
         Mockito.when(reservationService.findById("RES001")).thenReturn(reservation);
 
-        mockMvc.perform(get("/reservation/findById").param("id", "RES001"))
+        mockMvc.perform(get("/api/reservations/findById").param("id", "RES001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idReservation").value("RES001"));
     }
@@ -77,13 +77,13 @@ class ReservationRestControllerTest {
     void testFindById_NotFound() throws Exception {
         Mockito.when(reservationService.findById("NOTFOUND")).thenThrow(new RuntimeException("Not found"));
 
-        mockMvc.perform(get("/reservation/findById").param("id", "NOTFOUND"))
+        mockMvc.perform(get("/api/reservations/findById").param("id", "NOTFOUND"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void testDeleteById() throws Exception {
-        mockMvc.perform(delete("/reservation/deleteById/RES001"))
+        mockMvc.perform(delete("/api/reservations/deleteById/RES001"))
                 .andExpect(status().isOk());
 
         Mockito.verify(reservationService).deleteById("RES001");
@@ -91,7 +91,7 @@ class ReservationRestControllerTest {
 
     @Test
     void testDelete() throws Exception {
-        mockMvc.perform(delete("/reservation/delete")
+        mockMvc.perform(delete("/api/reservations/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reservation)))
                 .andExpect(status().isOk());
@@ -104,7 +104,7 @@ class ReservationRestControllerTest {
         Mockito.when(reservationService.ajouterReservationEtAssignerAChambreEtAEtudiant(anyLong(), anyLong()))
                 .thenReturn(reservation);
 
-        mockMvc.perform(post("/reservation/ajouterReservationEtAssignerAChambreEtAEtudiant")
+        mockMvc.perform(post("/api/reservations/ajouterReservationEtAssignerAChambreEtAEtudiant")
                         .param("numChambre", "101")
                         .param("cin", "12345678"))
                 .andExpect(status().isOk())
@@ -120,7 +120,7 @@ class ReservationRestControllerTest {
         Mockito.when(reservationService.getReservationParAnneeUniversitaire(any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(expectedCount);
 
-        mockMvc.perform(get("/reservation/getReservationParAnneeUniversitaire")
+        mockMvc.perform(get("/api/reservations/getReservationParAnneeUniversitaire")
                         .param("debutAnnee", "2024-01-01")
                         .param("finAnnee", "2024-12-31"))
                 .andExpect(status().isOk())
@@ -134,7 +134,7 @@ class ReservationRestControllerTest {
 
         Mockito.when(reservationService.annulerReservation(anyLong())).thenReturn(expectedMessage);
 
-        mockMvc.perform(delete("/reservation/annulerReservation")
+        mockMvc.perform(delete("/api/reservations/annulerReservation")
                         .param("cinEtudiant", "12345678"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedMessage));

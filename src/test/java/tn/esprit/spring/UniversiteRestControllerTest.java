@@ -48,7 +48,7 @@ public class UniversiteRestControllerTest {
     void testAddOrUpdate() throws Exception {
         when(universiteService.addOrUpdate(any(Universite.class))).thenReturn(universite);
 
-        mockMvc.perform(post("/universite/addOrUpdate")
+        mockMvc.perform(post("/api/universites/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(universite)))
                 .andExpect(status().isOk())
@@ -60,7 +60,7 @@ public class UniversiteRestControllerTest {
     void testFindAll() throws Exception {
         when(universiteService.findAll()).thenReturn(Arrays.asList(universite));
 
-        mockMvc.perform(get("/universite/findAll"))
+        mockMvc.perform(get("/api/universites/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nomUniversite").value("ENIT"));
     }
@@ -69,7 +69,7 @@ public class UniversiteRestControllerTest {
     void testFindById() throws Exception {
         when(universiteService.findById(1L)).thenReturn(universite);
 
-        mockMvc.perform(get("/universite/findById")
+        mockMvc.perform(get("/api/universites/findById")
                         .param("id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomUniversite").value("ENIT"));
@@ -78,7 +78,7 @@ public class UniversiteRestControllerTest {
     @Test
     void testDelete() throws Exception {
         // Just test that delete returns OK (void)
-        mockMvc.perform(delete("/universite/delete")
+        mockMvc.perform(delete("/api/universites/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(universite)))
                 .andExpect(status().isOk());
@@ -86,7 +86,7 @@ public class UniversiteRestControllerTest {
 
     @Test
     void testDeleteById() throws Exception {
-        mockMvc.perform(delete("/universite/deleteById")
+        mockMvc.perform(delete("/api/universites/deleteById")
                         .param("id", "1"))
                 .andExpect(status().isOk());
     }
@@ -95,7 +95,7 @@ public class UniversiteRestControllerTest {
     void testAjouterUniversiteEtSonFoyer() throws Exception {
         when(universiteService.ajouterUniversiteEtSonFoyer(any(Universite.class))).thenReturn(universite);
 
-        mockMvc.perform(post("/universite/ajouterUniversiteEtSonFoyer")
+        mockMvc.perform(post("/api/universites/ajouterUniversiteEtSonFoyer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(universite)))
                 .andExpect(status().isOk())

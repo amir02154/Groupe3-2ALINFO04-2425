@@ -36,7 +36,7 @@ class BlocRestControllerTest {
 
         when(blocService.findAll()).thenReturn(List.of(bloc1, bloc2));
 
-        mockMvc.perform(get("/bloc/findAll"))
+        mockMvc.perform(get("/api/blocs/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
@@ -47,7 +47,7 @@ class BlocRestControllerTest {
 
         when(blocService.findById(1L)).thenReturn(bloc);
 
-        mockMvc.perform(get("/bloc/findById").param("id", "1"))
+        mockMvc.perform(get("/api/blocs/findById").param("id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomBloc").value("Bloc A"));
     }
@@ -57,7 +57,7 @@ class BlocRestControllerTest {
         Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("Bloc C").build();
         when(blocService.addOrUpdate(any())).thenReturn(bloc);
 
-        mockMvc.perform(post("/bloc/addOrUpdate")
+        mockMvc.perform(post("/api/blocs/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(bloc)))
                 .andExpect(status().isOk())
@@ -68,7 +68,7 @@ class BlocRestControllerTest {
     void deleteBloc_shouldSucceed() throws Exception {
         Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("Bloc X").build();
 
-        mockMvc.perform(delete("/bloc/delete")
+        mockMvc.perform(delete("/api/blocs/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(bloc)))
                 .andExpect(status().isOk());
@@ -78,7 +78,7 @@ class BlocRestControllerTest {
 
     @Test
     void deleteBlocById_shouldSucceed() throws Exception {
-        mockMvc.perform(delete("/bloc/deleteById").param("id", "1"))
+        mockMvc.perform(delete("/api/blocs/deleteById").param("id", "1"))
                 .andExpect(status().isOk());
 
         verify(blocService).deleteById(1L);
@@ -90,7 +90,7 @@ class BlocRestControllerTest {
         List<Long> chambres = List.of(101L, 102L);
         when(blocService.affecterChambresABloc(any(), eq("Bloc A"))).thenReturn(bloc);
 
-        mockMvc.perform(put("/bloc/affecterChambresABloc")
+        mockMvc.perform(put("/api/blocs/affecterChambresABloc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("nomBloc", "Bloc A")
                         .content(objectMapper.writeValueAsString(chambres)))
@@ -103,7 +103,7 @@ class BlocRestControllerTest {
         Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("Bloc A").build();
         when(blocService.affecterBlocAFoyer("Bloc A", "Foyer A")).thenReturn(bloc);
 
-        mockMvc.perform(put("/bloc/affecterBlocAFoyer")
+        mockMvc.perform(put("/api/blocs/affecterBlocAFoyer")
                         .param("nomBloc", "Bloc A")
                         .param("nomFoyer", "Foyer A"))
                 .andExpect(status().isOk());
@@ -114,7 +114,7 @@ class BlocRestControllerTest {
         Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("Bloc A").build();
         when(blocService.affecterBlocAFoyer("Bloc A", "Foyer A")).thenReturn(bloc);
 
-        mockMvc.perform(put("/bloc/affecterBlocAFoyer2/Foyer A/Bloc A"))
+        mockMvc.perform(put("/api/blocs/affecterBlocAFoyer2/Foyer A/Bloc A"))
                 .andExpect(status().isOk());
     }
 
@@ -123,7 +123,7 @@ class BlocRestControllerTest {
         Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("Bloc Y").build();
         when(blocService.ajouterBlocEtSesChambres(any())).thenReturn(bloc);
 
-        mockMvc.perform(post("/bloc/ajouterBlocEtSesChambres")
+        mockMvc.perform(post("/api/blocs/ajouterBlocEtSesChambres")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(bloc)))
                 .andExpect(status().isOk())
@@ -135,7 +135,7 @@ class BlocRestControllerTest {
         Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("Bloc Z").build();
         when(blocService.ajouterBlocEtAffecterAFoyer(any(), eq("FoyerX"))).thenReturn(bloc);
 
-        mockMvc.perform(post("/bloc/ajouterBlocEtAffecterAFoyer/FoyerX")
+        mockMvc.perform(post("/api/blocs/ajouterBlocEtAffecterAFoyer/FoyerX")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(bloc)))
                 .andExpect(status().isOk())

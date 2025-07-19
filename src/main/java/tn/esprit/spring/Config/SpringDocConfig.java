@@ -6,6 +6,7 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import io.swagger.v3.oas.models.tags.Tag;
 
 @Configuration
 public class SpringDocConfig {
@@ -42,7 +43,7 @@ public class SpringDocConfig {
     public GroupedOpenApi blocPublicApi() {
         return GroupedOpenApi.builder()
                 .group("Only Bloc Management API")
-                .pathsToMatch("/bloc/**")
+                .pathsToMatch("/api/blocs/**")
                 .pathsToExclude("**")
                 .build();
     }
@@ -51,7 +52,7 @@ public class SpringDocConfig {
     public GroupedOpenApi chambrePublicApi() {
         return GroupedOpenApi.builder()
                 .group("Only Chambre Management API")
-                .pathsToMatch("/chambre/**")
+                .pathsToMatch("/api/chambres/**")
                 .pathsToExclude("**")
                 .build();
     }
@@ -60,7 +61,7 @@ public class SpringDocConfig {
     public GroupedOpenApi etudiantPublicApi() {
         return GroupedOpenApi.builder()
                 .group("Only Etudiant Management API")
-                .pathsToMatch("/etudiant/**")
+                .pathsToMatch("/api/etudiants/**")
                 .pathsToExclude("**")
                 .build();
     }
@@ -69,7 +70,7 @@ public class SpringDocConfig {
     public GroupedOpenApi foyerPublicApi() {
         return GroupedOpenApi.builder()
                 .group("Only Foyer Management API")
-                .pathsToMatch("/foyer/**")
+                .pathsToMatch("/api/foyers/**")
                 .pathsToExclude("**")
                 .build();
     }
@@ -78,7 +79,7 @@ public class SpringDocConfig {
     public GroupedOpenApi reservationPublicApi() {
         return GroupedOpenApi.builder()
                 .group("Only Reservation Management API")
-                .pathsToMatch("/reservation/**")
+                .pathsToMatch("/api/reservations/**")
                 .pathsToExclude("**")
                 .build();
     }
@@ -86,8 +87,8 @@ public class SpringDocConfig {
     @Bean
     public GroupedOpenApi universitePublicApi() {
         return GroupedOpenApi.builder()
-                .group("Only University Management API")
-                .pathsToMatch("/universite/**")
+                .group("Only Universite Management API")
+                .pathsToMatch("/api/universites/**")
                 .pathsToExclude("**")
                 .build();
     }

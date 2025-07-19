@@ -349,7 +349,7 @@ pipeline {
             }
         }
 
-        stage('Import Jenkins Metrics Dashboard') {
+        stage('Créer Jenkins Metrics Dashboard') {
             steps {
                 sh '''
                     GRAFANA_URL="http://172.29.215.125:3000"

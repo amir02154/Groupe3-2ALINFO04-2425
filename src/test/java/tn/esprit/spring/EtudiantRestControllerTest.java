@@ -47,7 +47,7 @@ public class EtudiantRestControllerTest {
     @Test
     void testGetAllEtudiants() throws Exception {
         Mockito.when(etudiantService.findAll()).thenReturn(Arrays.asList(etudiant));
-        mockMvc.perform(get("/etudiant/findAll"))
+        mockMvc.perform(get("/api/etudiants/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nomEt").value("Doe"));
     }
@@ -55,7 +55,7 @@ public class EtudiantRestControllerTest {
     @Test
     void testAddEtudiant() throws Exception {
         Mockito.when(etudiantService.addOrUpdate(any(Etudiant.class))).thenReturn(etudiant);
-        mockMvc.perform(post("/etudiant/addOrUpdate")
+        mockMvc.perform(post("/api/etudiants/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(etudiant)))
                 .andExpect(status().isOk())
@@ -64,7 +64,7 @@ public class EtudiantRestControllerTest {
 
     @Test
     void testDeleteEtudiant() throws Exception {
-        mockMvc.perform(delete("/etudiant/delete")
+        mockMvc.perform(delete("/api/etudiants/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(etudiant)))
                 .andExpect(status().isOk());
@@ -74,7 +74,7 @@ public class EtudiantRestControllerTest {
 
     @Test
     void testDeleteById() throws Exception {
-        mockMvc.perform(delete("/etudiant/deleteById").param("id", "1"))
+        mockMvc.perform(delete("/api/etudiants/deleteById").param("id", "1"))
                 .andExpect(status().isOk());
 
         Mockito.verify(etudiantService).deleteById(1L);
@@ -83,7 +83,7 @@ public class EtudiantRestControllerTest {
     @Test
     void testGetEtudiantById() throws Exception {
         Mockito.when(etudiantService.findById(anyLong())).thenReturn(etudiant);
-        mockMvc.perform(get("/etudiant/findById").param("id", "1"))
+        mockMvc.perform(get("/api/etudiants/findById").param("id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomEt").value("Doe"));
     }
@@ -91,14 +91,14 @@ public class EtudiantRestControllerTest {
     @Test
     void testGetEtudiantById_NotFound() throws Exception {
         Mockito.when(etudiantService.findById(anyLong())).thenThrow(new RuntimeException("Not found"));
-        mockMvc.perform(get("/etudiant/findById").param("id", "999"))
+        mockMvc.perform(get("/api/etudiants/findById").param("id", "999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void testSelectJPQL() throws Exception {
         Mockito.when(etudiantService.selectJPQL(anyString())).thenReturn(Arrays.asList(etudiant));
-        mockMvc.perform(get("/etudiant/selectJPQL").param("nom", "Doe"))
+        mockMvc.perform(get("/api/etudiants/selectJPQL").param("nom", "Doe"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nomEt").value("Doe"));
     }
@@ -106,7 +106,7 @@ public class EtudiantRestControllerTest {
     @Test
     void testSelectJPQL_EmptyResult() throws Exception {
         Mockito.when(etudiantService.selectJPQL(anyString())).thenReturn(Collections.emptyList());
-        mockMvc.perform(get("/etudiant/selectJPQL").param("nom", "Unknown"))
+        mockMvc.perform(get("/api/etudiants/selectJPQL").param("nom", "Unknown"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
     }

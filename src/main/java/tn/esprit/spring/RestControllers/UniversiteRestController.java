@@ -10,7 +10,7 @@ import tn.esprit.spring.Services.Universite.IUniversiteService;
 import java.util.List;
 
 @RestController
-@RequestMapping("universite")
+@RequestMapping("/api/universites")
 @AllArgsConstructor
 public class UniversiteRestController {
     IUniversiteService service;

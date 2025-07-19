@@ -46,7 +46,7 @@ public class EtudiantRestControllerIT {
                 .ecole("ENIT")
                 .build();
 
-        mockMvc.perform(post("/etudiant/addOrUpdate")
+        mockMvc.perform(post("/api/etudiants/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(e)))
                 .andExpect(status().isOk())
@@ -63,7 +63,7 @@ public class EtudiantRestControllerIT {
                 .build();
         etudiantRepository.save(e);
 
-        mockMvc.perform(get("/etudiant/findAll"))
+        mockMvc.perform(get("/api/etudiants/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
     }
@@ -78,7 +78,7 @@ public class EtudiantRestControllerIT {
                 .build();
         Etudiant saved = etudiantRepository.save(e);
 
-        mockMvc.perform(get("/etudiant/findById?id=" + saved.getIdEtudiant()))
+        mockMvc.perform(get("/api/etudiants/findById?id=" + saved.getIdEtudiant()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.prenomEt").value("Salma"));
     }
@@ -93,7 +93,7 @@ public class EtudiantRestControllerIT {
                 .build();
         Etudiant saved = etudiantRepository.save(e);
 
-        mockMvc.perform(delete("/etudiant/deleteById?id=" + saved.getIdEtudiant()))
+        mockMvc.perform(delete("/api/etudiants/deleteById?id=" + saved.getIdEtudiant()))
                 .andExpect(status().isOk());
     }
 }

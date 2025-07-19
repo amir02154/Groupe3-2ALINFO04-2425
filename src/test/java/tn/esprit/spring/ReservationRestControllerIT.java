@@ -54,18 +54,18 @@ private FoyerRepository foyerRepository;
                 .build();
 
         // Ajout
-        String response = mockMvc.perform(post("/reservation/addOrUpdate")
+        String response = mockMvc.perform(post("/api/reservations/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(res)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idReservation").isNotEmpty())
                 .andReturn().getResponse().getContentAsString();
 
-        // Extraire l’ID généré
+        // Extraire l'ID généré
         String generatedId = objectMapper.readTree(response).get("idReservation").asText();
 
-        // Rechercher par id avec l’ID récupéré
-        mockMvc.perform(get("/reservation/findById")
+        // Rechercher par id avec l'ID récupéré
+        mockMvc.perform(get("/api/reservations/findById")
                         .param("id", generatedId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idReservation").value(generatedId));
@@ -87,7 +87,7 @@ private FoyerRepository foyerRepository;
         reservationRepository.save(res1);
         reservationRepository.save(res2);
 
-        mockMvc.perform(get("/reservation/findAll"))
+        mockMvc.perform(get("/api/reservations/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()", is(2)));
     }
@@ -111,8 +111,8 @@ private FoyerRepository foyerRepository;
 
         reservation = reservationRepository.save(reservation); // ⚠️ Important
 
-        // Appel de l'API de suppression avec l’ID de la réservation
-        mockMvc.perform(delete("/reservation/delete")
+        // Appel de l'API de suppression avec l'ID de la réservation
+        mockMvc.perform(delete("/api/reservations/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reservation)))
                 .andExpect(status().isOk());
@@ -159,8 +159,8 @@ private FoyerRepository foyerRepository;
                 .build();
         etudiantRepository.save(etudiant);
 
-        // 4. Appeler l’API REST
-        mockMvc.perform(post("/reservation/ajouterReservationEtAssignerAChambreEtAEtudiant")
+        // 4. Appeler l'API REST
+        mockMvc.perform(post("/api/reservations/ajouterReservationEtAssignerAChambreEtAEtudiant")
                         .param("numChambre", "1")
                         .param("cin", "12345678"))
                 .andExpect(status().isOk());
@@ -170,7 +170,7 @@ private FoyerRepository foyerRepository;
 
     @Test
     void testGetReservationParAnneeUniversitaire() throws Exception {
-        mockMvc.perform(get("/reservation/getReservationParAnneeUniversitaire")
+        mockMvc.perform(get("/api/reservations/getReservationParAnneeUniversitaire")
                         .param("debutAnnee", "2023-09-01")
                         .param("finAnnee", "2024-08-31"))
                 .andExpect(status().isOk());
@@ -208,7 +208,7 @@ private FoyerRepository foyerRepository;
         chambreRepository.save(chambre);
 
         // 5. Appel API
-        mockMvc.perform(delete("/reservation/annulerReservation")
+        mockMvc.perform(delete("/api/reservations/annulerReservation")
                         .param("cinEtudiant", "12345678"))
                 .andExpect(status().isOk());
     }

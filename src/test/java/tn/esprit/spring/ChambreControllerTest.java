@@ -35,7 +35,7 @@ class ChambreRestControllerTest {
         Chambre chambre = Chambre.builder().numeroChambre(101L).typeC(TypeChambre.SIMPLE).build();
         when(chambreService.addOrUpdate(any())).thenReturn(chambre);
 
-        mockMvc.perform(post("/chambre/addOrUpdate")
+        mockMvc.perform(post("/api/chambres/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(chambre)))
                 .andExpect(status().isOk())
@@ -49,7 +49,7 @@ class ChambreRestControllerTest {
 
         when(chambreService.findAll()).thenReturn(List.of(chambre1, chambre2));
 
-        mockMvc.perform(get("/chambre/findAll"))
+        mockMvc.perform(get("/api/chambres/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
@@ -59,7 +59,7 @@ class ChambreRestControllerTest {
         Chambre chambre = Chambre.builder().numeroChambre(101L).build();
         when(chambreService.findById(1L)).thenReturn(chambre);
 
-        mockMvc.perform(get("/chambre/findById").param("id", "1"))
+        mockMvc.perform(get("/api/chambres/findById").param("id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.numeroChambre").value(101));
     }
@@ -68,7 +68,7 @@ class ChambreRestControllerTest {
     void testDeleteChambre() throws Exception {
         Chambre chambre = Chambre.builder().numeroChambre(103L).build();
 
-        mockMvc.perform(delete("/chambre/delete")
+        mockMvc.perform(delete("/api/chambres/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(chambre)))
                 .andExpect(status().isOk());
@@ -78,7 +78,7 @@ class ChambreRestControllerTest {
 
     @Test
     void testDeleteById() throws Exception {
-        mockMvc.perform(delete("/chambre/deleteById").param("id", "1"))
+        mockMvc.perform(delete("/api/chambres/deleteById").param("id", "1"))
                 .andExpect(status().isOk());
 
         verify(chambreService).deleteById(1L);
@@ -88,7 +88,7 @@ class ChambreRestControllerTest {
     void testGetChambresParNomBloc() throws Exception {
         when(chambreService.getChambresParNomBloc("BlocA")).thenReturn(List.of());
 
-        mockMvc.perform(get("/chambre/getChambresParNomBloc").param("nomBloc", "BlocA"))
+        mockMvc.perform(get("/api/chambres/getChambresParNomBloc").param("nomBloc", "BlocA"))
                 .andExpect(status().isOk());
     }
 
@@ -96,7 +96,7 @@ class ChambreRestControllerTest {
     void testNbChambreParTypeEtBloc() throws Exception {
         when(chambreService.nbChambreParTypeEtBloc(TypeChambre.SIMPLE, 1L)).thenReturn(5L);
 
-        mockMvc.perform(get("/chambre/nbChambreParTypeEtBloc")
+        mockMvc.perform(get("/api/chambres/nbChambreParTypeEtBloc")
                         .param("type", "SIMPLE")
                         .param("idBloc", "1"))
                 .andExpect(status().isOk())
@@ -108,7 +108,7 @@ class ChambreRestControllerTest {
         when(chambreService.getChambresNonReserveParNomFoyerEtTypeChambre("FoyerX", TypeChambre.DOUBLE))
                 .thenReturn(List.of());
 
-        mockMvc.perform(get("/chambre/getChambresNonReserveParNomFoyerEtTypeChambre")
+        mockMvc.perform(get("/api/chambres/getChambresNonReserveParNomFoyerEtTypeChambre")
                         .param("nomFoyer", "FoyerX")
                         .param("type", "DOUBLE"))
                 .andExpect(status().isOk());

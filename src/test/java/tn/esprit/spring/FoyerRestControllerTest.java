@@ -45,7 +45,7 @@ public class FoyerRestControllerTest {
     void testAddOrUpdate() throws Exception {
         Mockito.when(service.addOrUpdate(any(Foyer.class))).thenReturn(foyer);
 
-        mockMvc.perform(post("/foyer/addOrUpdate")
+        mockMvc.perform(post("/api/foyers/addOrUpdate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(foyer)))
                 .andExpect(status().isOk())
@@ -56,7 +56,7 @@ public class FoyerRestControllerTest {
     void testFindAll() throws Exception {
         Mockito.when(service.findAll()).thenReturn(Collections.singletonList(foyer));
 
-        mockMvc.perform(get("/foyer/findAll"))
+        mockMvc.perform(get("/api/foyers/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nomFoyer").value("Foyer Central"));
     }
@@ -65,14 +65,14 @@ public class FoyerRestControllerTest {
     void testFindById() throws Exception {
         Mockito.when(service.findById(anyLong())).thenReturn(foyer);
 
-        mockMvc.perform(get("/foyer/findById?id=1"))
+        mockMvc.perform(get("/api/foyers/findById?id=1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomFoyer").value("Foyer Central"));
     }
 
     @Test
     void testDelete() throws Exception {
-        mockMvc.perform(delete("/foyer/delete")
+        mockMvc.perform(delete("/api/foyers/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(foyer)))
                 .andExpect(status().isOk());
@@ -82,7 +82,7 @@ public class FoyerRestControllerTest {
 
     @Test
     void testDeleteById() throws Exception {
-        mockMvc.perform(delete("/foyer/deleteById?id=1"))
+        mockMvc.perform(delete("/api/foyers/deleteById?id=1"))
                 .andExpect(status().isOk());
 
         Mockito.verify(service).deleteById(1L);
@@ -92,7 +92,7 @@ public class FoyerRestControllerTest {
     void testAffecterFoyerAUniversite() throws Exception {
         Mockito.when(service.affecterFoyerAUniversite(anyLong(), anyString())).thenReturn(universite);
 
-        mockMvc.perform(put("/foyer/affecterFoyerAUniversite?idFoyer=1&nomUniversite=ESPRIT"))
+        mockMvc.perform(put("/api/foyers/affecterFoyerAUniversite?idFoyer=1&nomUniversite=ESPRIT"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomUniversite").value("ESPRIT"));
     }
@@ -101,7 +101,7 @@ public class FoyerRestControllerTest {
     void testDesaffecterFoyerAUniversite() throws Exception {
         Mockito.when(service.desaffecterFoyerAUniversite(anyLong())).thenReturn(universite);
 
-        mockMvc.perform(put("/foyer/desaffecterFoyerAUniversite?idUniversite=1"))
+        mockMvc.perform(put("/api/foyers/desaffecterFoyerAUniversite?idUniversite=1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomUniversite").value("ESPRIT"));
     }
@@ -110,7 +110,7 @@ public class FoyerRestControllerTest {
     void testAjouterFoyerEtAffecterAUniversite() throws Exception {
         Mockito.when(service.ajouterFoyerEtAffecterAUniversite(any(Foyer.class), anyLong())).thenReturn(foyer);
 
-        mockMvc.perform(post("/foyer/ajouterFoyerEtAffecterAUniversite?idUniversite=1")
+        mockMvc.perform(post("/api/foyers/ajouterFoyerEtAffecterAUniversite?idUniversite=1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(foyer)))
                 .andExpect(status().isOk())
@@ -121,7 +121,7 @@ public class FoyerRestControllerTest {
     void testAffecterFoyerAUniversiteWithPathVariables() throws Exception {
         Mockito.when(service.affecterFoyerAUniversite(eq(1L), eq(2L))).thenReturn(universite);
 
-        mockMvc.perform(put("/foyer/affecterFoyerAUniversite/1/2"))
+        mockMvc.perform(put("/api/foyers/affecterFoyerAUniversite/1/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomUniversite").value("ESPRIT"));
     }

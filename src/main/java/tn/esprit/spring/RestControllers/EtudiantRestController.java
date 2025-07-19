@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("etudiant")
+@RequestMapping("/api/etudiants")
 @AllArgsConstructor
 public class EtudiantRestController {
     IEtudiantService service;

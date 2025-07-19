@@ -9,7 +9,7 @@ import tn.esprit.spring.Services.Chambre.IChambreService;
 import java.util.List;
 
 @RestController
-@RequestMapping("chambre")
+@RequestMapping("/api/chambres")
 @AllArgsConstructor
 public class ChambreRestController {
 
