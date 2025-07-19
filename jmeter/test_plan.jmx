@@ -109,9 +109,6 @@
             <message>true</message>
             <fileName>true</fileName>
             <threadName>true</threadName>
-            <methodName>true</methodName>
-            <className>true</className>
-            <customMessage>true</customMessage>
             <dataType>true</dataType>
             <encoding>false</encoding>
             <assertions>true</assertions>
@@ -150,9 +147,6 @@
             <message>true</message>
             <fileName>true</fileName>
             <threadName>true</threadName>
-            <methodName>true</methodName>
-            <className>true</className>
-            <customMessage>true</customMessage>
             <dataType>true</dataType>
             <encoding>false</encoding>
             <assertions>true</assertions>
@@ -191,9 +185,6 @@
             <message>true</message>
             <fileName>true</fileName>
             <threadName>true</threadName>
-            <methodName>true</methodName>
-            <className>true</className>
-            <customMessage>true</customMessage>
             <dataType>true</dataType>
             <encoding>false</encoding>
             <assertions>true</assertions>

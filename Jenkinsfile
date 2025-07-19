@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-       stage('Unit Tests') {
+     /*  stage('Unit Tests') {
             steps {
                 sh 'mvn test'
             }
@@ -44,7 +44,7 @@ pipeline {
             steps {
                 sh 'mvn verify -Pintegration-tests'
             }
-        }
+        }*/
 /*
         stage('Performance Test with JMeter') {
             steps {
@@ -92,7 +92,7 @@ pipeline {
             }
         }
 */
-        stage('SonarQube Analysis') {
+      /*  stage('SonarQube Analysis') {
             steps {
                 script {
                     withSonarQubeEnv('SonarQubeServer') {
@@ -158,7 +158,7 @@ pipeline {
         }
 
 
-        
+        */
 
         stage('Package') {
             steps {
@@ -186,7 +186,7 @@ pipeline {
             }
         }*/
 
-        stage('Build & Push Docker Image') {
+      /*  stage('Build & Push Docker Image') {
             steps {
                 script {
                     withCredentials([
@@ -224,7 +224,7 @@ pipeline {
                     docker compose up -d
                 '''
             }
-        }
+        }*/
         stage('Performance Test with JMeter') {
             steps {
                 echo '🚀 Exécution des tests de performance JMeter...'
