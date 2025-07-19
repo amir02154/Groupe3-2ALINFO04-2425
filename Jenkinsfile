@@ -49,10 +49,87 @@ pipeline {
             steps {
                 echo '🚀 Exécution des tests de performance JMeter...'
                 sh '''
+                    # Vérifier si le fichier de test existe
+                    if [ ! -f "jmeter/test_plan.jmx" ]; then
+                        echo "❌ Fichier de test JMeter non trouvé: jmeter/test_plan.jmx"
+                        exit 1
+                    fi
+                    
+                    # Vérifier que l'application Spring Boot est démarrée
+                    echo "🔍 Vérification que l'application Spring Boot est accessible..."
+                    MAX_ATTEMPTS=30
+                    ATTEMPT=0
+                    
+                    while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+                        if curl -s http://localhost:8086/actuator/health > /dev/null 2>&1; then
+                            echo "✅ Application Spring Boot accessible sur http://localhost:8086"
+                            break
+                        else
+                            ATTEMPT=$((ATTEMPT + 1))
+                            echo "⏳ Tentative $ATTEMPT/$MAX_ATTEMPTS - Application non accessible, attente..."
+                            sleep 2
+                        fi
+                    done
+                    
+                    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+                        echo "❌ Application Spring Boot non accessible après $MAX_ATTEMPTS tentatives"
+                        echo "💡 Assurez-vous que l'application est démarrée sur le port 8086"
+                        exit 1
+                    fi
+                    
+                    # Installation de JMeter si nécessaire
+                    echo "🔧 Vérification de l'installation de JMeter..."
+                    if ! command -v jmeter &> /dev/null; then
+                        echo "📦 Installation de JMeter..."
+                        
+                        # Télécharger et installer JMeter
+                        JMETER_VERSION="5.6.3"
+                        JMETER_DIR="/opt/jmeter"
+                        
+                        if [ ! -d "$JMETER_DIR" ]; then
+                            echo "📥 Téléchargement de JMeter $JMETER_VERSION..."
+                            sudo mkdir -p $JMETER_DIR
+                            cd /tmp
+                            wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz
+                            sudo tar -xzf apache-jmeter-$JMETER_VERSION.tgz -C /opt/
+                            sudo mv /opt/apache-jmeter-$JMETER_VERSION $JMETER_DIR
+                            sudo ln -sf $JMETER_DIR/bin/jmeter /usr/local/bin/jmeter
+                            sudo ln -sf $JMETER_DIR/bin/jmeter-server /usr/local/bin/jmeter-server
+                            echo "✅ JMeter installé dans $JMETER_DIR"
+                        fi
+                        
+                        # Vérifier l'installation
+                        if [ -f "$JMETER_DIR/bin/jmeter" ]; then
+                            JMETER_CMD="$JMETER_DIR/bin/jmeter"
+                        else
+                            echo "❌ Échec de l'installation de JMeter"
+                            exit 1
+                        fi
+                    else
+                        JMETER_CMD="jmeter"
+                    fi
+                    
+                    echo "✅ Utilisation de JMeter: $JMETER_CMD"
+                    echo "📊 Version JMeter: $($JMETER_CMD -v 2>&1 | head -1)"
+                    
                     rm -rf jmeter/report
                     rm -f jmeter/results.jtl
                     mkdir -p jmeter/report
-                    /opt/jmeter/bin/jmeter -n -t jmeter/performance-test-demo.jmx -l jmeter/results.jtl -e -o jmeter/report
+                    
+                    echo "🎯 Test des endpoints: /actuator/health, /api/foyers, /api/etudiants"
+                    $JMETER_CMD -n -t jmeter/test_plan.jmx -l jmeter/results.jtl -e -o jmeter/report
+                    
+                    # Vérifier si le rapport a été généré
+                    if [ -f "jmeter/report/index.html" ]; then
+                        echo "✅ Rapport JMeter généré avec succès"
+                        echo "📊 Statistiques des tests:"
+                        ls -la jmeter/report/
+                        echo "📈 Graphiques disponibles dans le rapport HTML"
+                    else
+                        echo "❌ Échec de génération du rapport JMeter"
+                        ls -la jmeter/
+                    fi
+                    
                     tail -n 20 jmeter/results.jtl || true
                 '''
             }
