@@ -366,12 +366,20 @@ pipeline {
 
                     cp monitoring/grafana-dashboard-jenkins.json jenkins_metrics_dashboard.json
                     DASHBOARD_UID=$(jq -r '.uid' jenkins_metrics_dashboard.json)
+                    echo "🔍 Vérification du dashboard avec UID: $DASHBOARD_UID"
 
-                    EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
+                    # Vérifier si le dashboard existe
+                    RESPONSE=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID")
+                    EXISTS=$(echo "$RESPONSE" | jq -r '.dashboard.uid // empty')
 
                     if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
-                        echo "Dashboard déjà existé"
+                        echo "✅ Dashboard '$DASHBOARD_UID' existe déjà dans Grafana"
+                        echo "🔄 Mise à jour du dashboard existant..."
                     else
+                        echo "🆕 Dashboard '$DASHBOARD_UID' n'existe pas, création..."
+                    fi
+
+                    # Préparer le payload avec overwrite: true pour forcer la mise à jour
                     jq -s '{
                         dashboard: .[0],
                         inputs: [{
@@ -381,12 +389,26 @@ pipeline {
                             value: "Prometheus"
                         }],
                         overwrite: true
-                        }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
+                    }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
 
-                        curl -s -X POST $GRAFANA_URL/api/dashboards/import \
+                    echo "📤 Import/Mise à jour du dashboard..."
+                    IMPORT_RESPONSE=$(curl -s -X POST $GRAFANA_URL/api/dashboards/import \
                         -H "Content-Type: application/json" \
-                            -u $GRAFANA_USER:$GRAFANA_PASS \
-                            -d @payload_jenkins_dashboard_jenkins.json
+                        -u $GRAFANA_USER:$GRAFANA_PASS \
+                        -d @payload_jenkins_dashboard_jenkins.json)
+
+                    if echo "$IMPORT_RESPONSE" | jq -e '.uid' > /dev/null 2>&1; then
+                        echo "✅ Dashboard importé/mis à jour avec succès"
+                        echo "📊 URL du dashboard: $GRAFANA_URL/d/$DASHBOARD_UID"
+                    else
+                        echo "❌ Erreur lors de l'import du dashboard"
+                        echo "📋 Réponse: $IMPORT_RESPONSE"
+                        # Ne pas faire échouer le pipeline si le dashboard existe déjà
+                        if echo "$IMPORT_RESPONSE" | grep -q "already exists"; then
+                            echo "ℹ️ Dashboard existe déjà, c'est normal"
+                        else
+                            exit 1
+                        fi
                     fi
                 '''
             }
@@ -415,14 +437,21 @@ pipeline {
                     fi
 
                     echo "✅ jq est disponible: $(jq --version)"
+                    echo "🔍 Vérification du dashboard avec UID: $DASHBOARD_UID"
 
-                    EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
+                    # Vérifier si le dashboard existe
+                    RESPONSE=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID")
+                    EXISTS=$(echo "$RESPONSE" | jq -r '.dashboard.uid // empty')
 
-                    if [ "$EXISTS" = "$DASHBOARD_UID" ]; then
-                        echo "Dashboard déjà existé"
+                    if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
+                        echo "✅ Dashboard '$DASHBOARD_UID' existe déjà dans Grafana"
+                        echo "🔄 Mise à jour du dashboard existant..."
                     else
+                        echo "🆕 Dashboard '$DASHBOARD_UID' n'existe pas, création..."
                         curl -s https://grafana.com/api/dashboards/9964/revisions/1/download -o node_exporter_dashboard.json
+                    fi
 
+                    # Préparer le payload avec overwrite: true pour forcer la mise à jour
                     jq -s '{
                         dashboard: .[0],
                         inputs: [{
@@ -432,12 +461,26 @@ pipeline {
                             value: "Prometheus"
                         }],
                         overwrite: true
-                        }' node_exporter_dashboard.json > payload_dashboard_9964.json
+                    }' node_exporter_dashboard.json > payload_dashboard_9964.json
 
-                        curl -s -X POST $GRAFANA_URL/api/dashboards/import \
+                    echo "📤 Import/Mise à jour du dashboard..."
+                    IMPORT_RESPONSE=$(curl -s -X POST $GRAFANA_URL/api/dashboards/import \
                         -H "Content-Type: application/json" \
-                            -u $GRAFANA_USER:$GRAFANA_PASS \
-                            -d @payload_dashboard_9964.json
+                        -u $GRAFANA_USER:$GRAFANA_PASS \
+                        -d @payload_dashboard_9964.json)
+
+                    if echo "$IMPORT_RESPONSE" | jq -e '.uid' > /dev/null 2>&1; then
+                        echo "✅ Dashboard importé/mis à jour avec succès"
+                        echo "📊 URL du dashboard: $GRAFANA_URL/d/$DASHBOARD_UID"
+                    else
+                        echo "❌ Erreur lors de l'import du dashboard"
+                        echo "📋 Réponse: $IMPORT_RESPONSE"
+                        # Ne pas faire échouer le pipeline si le dashboard existe déjà
+                        if echo "$IMPORT_RESPONSE" | grep -q "already exists"; then
+                            echo "ℹ️ Dashboard existe déjà, c'est normal"
+                        else
+                            exit 1
+                        fi
                     fi
                 '''
             }
