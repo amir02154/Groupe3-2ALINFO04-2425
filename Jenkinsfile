@@ -45,7 +45,7 @@ pipeline {
                 sh 'mvn verify -Pintegration-tests'
             }
         }*/
-/*
+
         stage('Performance Test with JMeter') {
             steps {
                 echo '🚀 Exécution des tests de performance JMeter...'
@@ -85,7 +85,7 @@ pipeline {
                             <p>Votre Jenkins 🛠️</p>
                         """,
                         mimeType: 'text/html',
-                        to: 'amir.benothman154@gmail.com',
+                        to: 'amir.benothman04@gmail.com',
                         attachmentsPattern: 'jmeter/report/**'
                     )
                 }
@@ -225,7 +225,7 @@ pipeline {
                 '''
             }
         }*/
-        stage('Performance Test with JMeter') {
+       /* stage('Performance Test with JMeter') {
             steps {
                 echo '🚀 Exécution des tests de performance JMeter...'
                 sh '''
@@ -313,7 +313,7 @@ pipeline {
                     tail -n 20 jmeter/results.jtl || true
                 '''
             }
-        }
+        }*/
         
 
         stage('Start Prometheus') {
@@ -367,7 +367,64 @@ pipeline {
                 }
             }
         }
+ stage('Import Jenkins Metrics Dashboard') {
+            steps {
+                sh '''
+                    GRAFANA_URL="http://172.29.215.125:3000"
+                    GRAFANA_USER="admin"
+                    GRAFANA_PASS="123456aA"
 
+                    # Vérifier si jq est installé
+                    if ! command -v jq &> /dev/null; then
+                        echo "📦 Installation de jq..."
+                        if command -v apt-get &> /dev/null; then
+                            sudo apt-get update && sudo apt-get install -y jq
+                        elif command -v yum &> /dev/null; then
+                            sudo yum install -y jq
+                        elif command -v dnf &> /dev/null; then
+                            sudo dnf install -y jq
+                        else
+                            echo "❌ Impossible d'installer jq automatiquement"
+                            exit 1
+                        fi
+                    fi
+
+                    echo "✅ jq est disponible: $(jq --version)"
+
+                    cp monitoring/grafana-dashboard-jenkins.json jenkins_metrics_dashboard.json
+
+                    # Extraire l'UID du dashboard Jenkins Metrics
+                    DASHBOARD_UID=$(jq -r '.uid' jenkins_metrics_dashboard.json)
+
+                    EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
+
+                    if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
+                        echo "Dashboard déjà existé"
+                    else
+                        echo "🔧 Préparation du payload pour l'import du dashboard Jenkins..."
+                        jq -s '{
+                            dashboard: .[0],
+                            inputs: [{
+                                name: "DS_PROMETHEUS",
+                                type: "datasource",
+                                pluginId: "prometheus",
+                                value: "Prometheus"
+                            }],
+                            overwrite: true
+                        }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
+
+                        echo "📤 Import du dashboard Jenkins dans Grafana..."
+                        curl -s -X POST $GRAFANA_URL/api/dashboards/import \
+                            -H "Content-Type: application/json" \
+                            -u $GRAFANA_USER:$GRAFANA_PASS \
+                            -d @payload_jenkins_dashboard_jenkins.json
+                        
+                        echo "✅ Dashboard Jenkins importé avec succès"
+                    fi
+                '''
+            }
+        }
+    }
 
 
         stage('Import Dashboard Grafana') {
@@ -427,64 +484,7 @@ pipeline {
             }
         }
 
-        stage('Import Jenkins Metrics Dashboard') {
-            steps {
-                sh '''
-                    GRAFANA_URL="http://172.29.215.125:3000"
-                    GRAFANA_USER="admin"
-                    GRAFANA_PASS="123456aA"
-
-                    # Vérifier si jq est installé
-                    if ! command -v jq &> /dev/null; then
-                        echo "📦 Installation de jq..."
-                        if command -v apt-get &> /dev/null; then
-                            sudo apt-get update && sudo apt-get install -y jq
-                        elif command -v yum &> /dev/null; then
-                            sudo yum install -y jq
-                        elif command -v dnf &> /dev/null; then
-                            sudo dnf install -y jq
-                        else
-                            echo "❌ Impossible d'installer jq automatiquement"
-                            exit 1
-                        fi
-                    fi
-
-                    echo "✅ jq est disponible: $(jq --version)"
-
-                    cp monitoring/grafana-dashboard-jenkins.json jenkins_metrics_dashboard.json
-
-                    # Extraire l'UID du dashboard Jenkins Metrics
-                    DASHBOARD_UID=$(jq -r '.uid' jenkins_metrics_dashboard.json)
-
-                    EXISTS=$(curl -s -u $GRAFANA_USER:$GRAFANA_PASS "$GRAFANA_URL/api/dashboards/uid/$DASHBOARD_UID" | jq -r '.dashboard.uid // empty')
-
-                    if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
-                        echo "Dashboard déjà existé"
-                    else
-                        echo "🔧 Préparation du payload pour l'import du dashboard Jenkins..."
-                        jq -s '{
-                            dashboard: .[0],
-                            inputs: [{
-                                name: "DS_PROMETHEUS",
-                                type: "datasource",
-                                pluginId: "prometheus",
-                                value: "Prometheus"
-                            }],
-                            overwrite: true
-                        }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
-
-                        echo "📤 Import du dashboard Jenkins dans Grafana..."
-                        curl -s -X POST $GRAFANA_URL/api/dashboards/import \
-                            -H "Content-Type: application/json" \
-                            -u $GRAFANA_USER:$GRAFANA_PASS \
-                            -d @payload_jenkins_dashboard_jenkins.json
-                        
-                        echo "✅ Dashboard Jenkins importé avec succès"
-                    fi
-                '''
-            }
-        }
-    }
+       
 
 
     post {
