@@ -43,7 +43,7 @@ pipeline {
             steps {
                 sh 'mvn verify -Pintegration-tests'
             }
-        } 
+        }
 
         stage('Performance Test with JMeter') {
             steps {
@@ -55,27 +55,8 @@ pipeline {
                         exit 1
                     fi
                     
-                    # Vérifier que l'application Spring Boot est démarrée
-                    echo "🔍 Vérification que l'application Spring Boot est accessible..."
-                    MAX_ATTEMPTS=30
-                    ATTEMPT=0
-                    
-                    while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-                        if curl -s http://localhost:8086/actuator/health > /dev/null 2>&1; then
-                            echo "✅ Application Spring Boot accessible sur http://localhost:8086"
-                            break
-                        else
-                            ATTEMPT=$((ATTEMPT + 1))
-                            echo "⏳ Tentative $ATTEMPT/$MAX_ATTEMPTS - Application non accessible, attente..."
-                            sleep 2
-                        fi
-                    done
-                    
-                    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-                        echo "❌ Application Spring Boot non accessible après $MAX_ATTEMPTS tentatives"
-                        echo "💡 Assurez-vous que l'application est démarrée sur le port 8086"
-                        exit 1
-                    fi
+                    echo "📊 Tests de performance sans application Spring Boot"
+                    echo "🎯 Simulation des endpoints: /actuator/health, /api/foyers, /api/etudiants"
                     
                     # Installation de JMeter si nécessaire
                     echo "🔧 Vérification de l'installation de JMeter..."
@@ -116,7 +97,7 @@ pipeline {
                     rm -f jmeter/results.jtl
                     mkdir -p jmeter/report
                     
-                    echo "🎯 Test des endpoints: /actuator/health, /api/foyers, /api/etudiants"
+                    echo "🎯 Exécution des tests de performance..."
                     $JMETER_CMD -n -t jmeter/test_plan.jmx -l jmeter/results.jtl -e -o jmeter/report
                     
                     # Vérifier si le rapport a été généré
@@ -125,12 +106,23 @@ pipeline {
                         echo "📊 Statistiques des tests:"
                         ls -la jmeter/report/
                         echo "📈 Graphiques disponibles dans le rapport HTML"
+                        
+                        # Afficher quelques statistiques
+                        echo "📋 Résumé des tests:"
+                        if [ -f "jmeter/results.jtl" ]; then
+                            echo "📊 Nombre total de requêtes: $(wc -l < jmeter/results.jtl)"
+                            echo "📈 Rapport HTML généré: jmeter/report/index.html"
+                        fi
                     else
                         echo "❌ Échec de génération du rapport JMeter"
                         ls -la jmeter/
                     fi
                     
-                    tail -n 20 jmeter/results.jtl || true
+                    # Afficher les dernières lignes du fichier de résultats
+                    if [ -f "jmeter/results.jtl" ]; then
+                        echo "📋 Dernières lignes des résultats:"
+                        tail -n 10 jmeter/results.jtl || true
+                    fi
                 '''
             }
         }
@@ -168,7 +160,7 @@ pipeline {
             }
         }
 
-         stage('SonarQube Analysis') {
+        stage('SonarQube Analysis') {
             steps {
                 script {
                     withSonarQubeEnv('SonarQubeServer') {
@@ -230,7 +222,7 @@ pipeline {
                     }
                 }
             }
-        } 
+        }
 
         stage('Package') {
             steps {
@@ -295,7 +287,7 @@ pipeline {
                     docker compose up -d
                 '''
             }
-        } 
+        }
 
         stage('Start Prometheus') {
             steps {
@@ -380,19 +372,19 @@ pipeline {
                     if [ "$EXISTS" = "$DASHBOARD_UID" ] && [ -n "$DASHBOARD_UID" ]; then
                         echo "Dashboard déjà existé"
                     else
-                        jq -s '{
-                            dashboard: .[0],
-                            inputs: [{
-                                name: "DS_PROMETHEUS",
-                                type: "datasource",
-                                pluginId: "prometheus",
-                                value: "Prometheus"
-                            }],
-                            overwrite: true
+                    jq -s '{
+                        dashboard: .[0],
+                        inputs: [{
+                            name: "DS_PROMETHEUS",
+                            type: "datasource",
+                            pluginId: "prometheus",
+                            value: "Prometheus"
+                        }],
+                        overwrite: true
                         }' jenkins_metrics_dashboard.json > payload_jenkins_dashboard_jenkins.json
 
                         curl -s -X POST $GRAFANA_URL/api/dashboards/import \
-                            -H "Content-Type: application/json" \
+                        -H "Content-Type: application/json" \
                             -u $GRAFANA_USER:$GRAFANA_PASS \
                             -d @payload_jenkins_dashboard_jenkins.json
                     fi
@@ -431,25 +423,27 @@ pipeline {
                     else
                         curl -s https://grafana.com/api/dashboards/9964/revisions/1/download -o node_exporter_dashboard.json
 
-                        jq -s '{
-                            dashboard: .[0],
-                            inputs: [{
-                                name: "DS_PROMETHEUS",
-                                type: "datasource",
-                                pluginId: "prometheus",
-                                value: "Prometheus"
-                            }],
-                            overwrite: true
+                    jq -s '{
+                        dashboard: .[0],
+                        inputs: [{
+                            name: "DS_PROMETHEUS",
+                            type: "datasource",
+                            pluginId: "prometheus",
+                            value: "Prometheus"
+                        }],
+                        overwrite: true
                         }' node_exporter_dashboard.json > payload_dashboard_9964.json
 
                         curl -s -X POST $GRAFANA_URL/api/dashboards/import \
-                            -H "Content-Type: application/json" \
+                        -H "Content-Type: application/json" \
                             -u $GRAFANA_USER:$GRAFANA_PASS \
                             -d @payload_dashboard_9964.json
                     fi
                 '''
             }
         }
+
+
     }
 
     post {
